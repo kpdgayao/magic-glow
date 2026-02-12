@@ -1,7 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "./prisma";
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+let anthropicClient: Anthropic | null = null;
+
+function getAnthropic() {
+  if (!anthropicClient) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      throw new Error("ANTHROPIC_API_KEY not configured");
+    }
+    anthropicClient = new Anthropic({ apiKey });
+  }
+  return anthropicClient;
+}
 
 interface UserContext {
   name: string | null;
@@ -75,7 +86,7 @@ export async function chat(userId: string, userMessage: string) {
     data: { userId, role: "USER", content: userMessage },
   });
 
-  const response = await anthropic.messages.create({
+  const response = await getAnthropic().messages.create({
     model: "claude-sonnet-4-5-20250514",
     max_tokens: 1024,
     system: buildSystemPrompt(user),
@@ -117,7 +128,7 @@ export async function generateQuizChallenge(
       ? "Respond in Taglish (mix of Tagalog and English)."
       : "Respond in clear, simple English.";
 
-  const response = await anthropic.messages.create({
+  const response = await getAnthropic().messages.create({
     model: "claude-sonnet-4-5-20250514",
     max_tokens: 1500,
     system: `You are MoneyGlow AI, a Filipino financial literacy coach. Generate a personalized 30-day money challenge. ${lang}`,
