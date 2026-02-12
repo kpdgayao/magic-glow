@@ -32,16 +32,17 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Magic link sent" });
   } catch (error) {
+    console.error("Send magic link error:", error);
+
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json(
         { error: "Please enter a valid email address" },
         { status: 400 }
       );
     }
-    console.error("Send magic link error:", error);
-    return NextResponse.json(
-      { error: "Failed to send magic link" },
-      { status: 500 }
-    );
+
+    const message =
+      error instanceof Error ? error.message : "Failed to send magic link";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
