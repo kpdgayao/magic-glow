@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum LanguagePref {
+  ENGLISH
+  TAGLISH
+}
+
+enum FinancialGoal {
+  SAVE_EMERGENCY_FUND
+  PAY_OFF_DEBT
+  START_INVESTING
+  BUDGET_BETTER
+  GROW_CREATOR_INCOME
+}
+
+enum QuizResult {
+  YOLO
+  CHILL
+  PLAN
+  MASTER
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String?
+  age           Int?
+  incomeSources String[]
+  monthlyIncome Float?
+  financialGoal FinancialGoal?
+  languagePref  LanguagePref  @default(ENGLISH)
+  quizResult    QuizResult?
+  quizChallenge String?
+  onboarded     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  chatMessages    ChatMessage[]
+  incomeEntries   IncomeEntry[]
+  budgetSnapshots BudgetSnapshot[]
+  magicLinks      MagicLink[]
+}
+
+model MagicLink {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      ChatRole
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model IncomeEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    String
+  type      String
+  amount    Float
+  date      DateTime
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model BudgetSnapshot {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  income    Float
+  needs     Float
+  wants     Float
+  savings   Float
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

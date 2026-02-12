@@ -1,0 +1,152 @@
+import Anthropic from "@anthropic-ai/sdk";
+import { prisma } from "./prisma";
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
+
+interface UserContext {
+  name: string | null;
+  age: number | null;
+  incomeSources: string[];
+  monthlyIncome: number | null;
+  financialGoal: string | null;
+  quizResult: string | null;
+  languagePref: "ENGLISH" | "TAGLISH";
+}
+
+function buildSystemPrompt(user: UserContext): string {
+  const lang =
+    user.languagePref === "TAGLISH"
+      ? "Respond in Taglish (mix of Tagalog and English, casual Filipino conversational style). Use Filipino slang naturally."
+      : "Respond in clear, simple English.";
+
+  return `You are MoneyGlow AI, a friendly and encouraging Filipino financial literacy coach for young digital creators (ages 18-35).
+
+## YOUR PERSONALITY
+- Warm, supportive, like a cool ate/kuya who's good with money
+- Use encouraging language, celebrate small wins
+- Keep advice practical and actionable — no jargon
+- Reference Filipino context: GCash, Maya, BIR, Pag-IBIG MP2, SSS, PhilHealth, digital banks (Tonik, Maya, GCash GSave)
+- Never give investment advice or specific stock/crypto recommendations
+- Focus on financial literacy: budgeting, saving, tracking, avoiding scams, tax basics for creators
+
+## USER PROFILE
+- Name: ${user.name || "not set"}
+- Age: ${user.age || "not set"}
+- Income sources: ${user.incomeSources.length > 0 ? user.incomeSources.join(", ") : "not set"}
+- Estimated monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome.toLocaleString()}` : "not set"}
+- Financial goal: ${user.financialGoal || "not set"}
+- Money personality: ${user.quizResult || "not taken yet"}
+
+## CONTEXT
+This user is a participant in the Beauty for a Better Life (BFBL) program by L'Oréal Philippines, DTI, and SPARK! Philippines. They are learning to become digital beauty creators using TikTok and Watsons Philippines. Many are university students in Baguio City.
+
+## LANGUAGE
+${lang}
+
+## RULES
+1. Keep responses concise — max 3 short paragraphs unless the user asks for detail
+2. Always give at least one specific, actionable tip
+3. Use peso amounts (₱) in examples
+4. If the user asks about something outside financial literacy, gently redirect
+5. If the user seems distressed about money, be empathetic first, then offer practical steps
+6. Encourage use of the app's other features (budget calculator, compound interest, tracker) when relevant
+7. For tax questions, give general guidance only and recommend consulting a CPA for specific situations`;
+}
+
+export async function chat(userId: string, userMessage: string) {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+  });
+
+  const history = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  const messages = history.reverse().map((msg) => ({
+    role: msg.role.toLowerCase() as "user" | "assistant",
+    content: msg.content,
+  }));
+
+  messages.push({ role: "user", content: userMessage });
+
+  await prisma.chatMessage.create({
+    data: { userId, role: "USER", content: userMessage },
+  });
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250514",
+    max_tokens: 1024,
+    system: buildSystemPrompt(user),
+    messages,
+  });
+
+  const assistantMessage =
+    response.content[0].type === "text" ? response.content[0].text : "";
+
+  await prisma.chatMessage.create({
+    data: { userId, role: "ASSISTANT", content: assistantMessage },
+  });
+
+  // Prune old messages (keep last 20)
+  const allMessages = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+  });
+  if (allMessages.length > 20) {
+    const toDelete = allMessages.slice(0, allMessages.length - 20);
+    await prisma.chatMessage.deleteMany({
+      where: { id: { in: toDelete.map((m) => m.id) } },
+    });
+  }
+
+  return assistantMessage;
+}
+
+export async function generateQuizChallenge(
+  userId: string,
+  quizResult: string
+) {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+  });
+
+  const lang =
+    user.languagePref === "TAGLISH"
+      ? "Respond in Taglish (mix of Tagalog and English)."
+      : "Respond in clear, simple English.";
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-5-20250514",
+    max_tokens: 1500,
+    system: `You are MoneyGlow AI, a Filipino financial literacy coach. Generate a personalized 30-day money challenge. ${lang}`,
+    messages: [
+      {
+        role: "user",
+        content: `Generate a 30-day money challenge for a user with this profile:
+- Money personality: ${quizResult}
+- Name: ${user.name || "Friend"}
+- Age: ${user.age || "18-35"}
+- Income sources: ${user.incomeSources.join(", ") || "content creation"}
+- Monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome}` : "varies"}
+- Goal: ${user.financialGoal || "general financial literacy"}
+
+Format as 4 weekly themes with specific daily/weekly tasks. Include peso amounts where applicable. Make it achievable and encouraging. Use emojis sparingly. Format in markdown.`,
+      },
+    ],
+  });
+
+  const challenge =
+    response.content[0].type === "text" ? response.content[0].text : "";
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      quizResult: quizResult as "YOLO" | "CHILL" | "PLAN" | "MASTER",
+      quizChallenge: challenge,
+    },
+  });
+
+  return challenge;
+}
