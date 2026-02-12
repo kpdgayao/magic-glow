@@ -87,7 +87,7 @@ export async function chat(userId: string, userMessage: string) {
   });
 
   const response = await getAnthropic().messages.create({
-    model: "claude-sonnet-4-5-20250514",
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 1024,
     system: buildSystemPrompt(user),
     messages,
@@ -129,7 +129,7 @@ export async function generateQuizChallenge(
       : "Respond in clear, simple English.";
 
   const response = await getAnthropic().messages.create({
-    model: "claude-sonnet-4-5-20250514",
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 1500,
     system: `You are MoneyGlow AI, a Filipino financial literacy coach. Generate a personalized 30-day money challenge. ${lang}`,
     messages: [
