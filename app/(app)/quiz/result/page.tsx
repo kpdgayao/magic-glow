@@ -20,17 +20,14 @@ function QuizResultContent() {
 
   useEffect(() => {
     if (result && !saved) {
-      // Save result to DB (without generating challenge yet)
-      fetch("/api/quiz/result", {
+      // Save result to DB only (no AI call)
+      fetch(`/api/quiz/result?action=save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ result }),
       })
         .then((res) => res.json())
-        .then((data) => {
-          setSaved(true);
-          if (data.challenge) setChallenge(data.challenge);
-        })
+        .then(() => setSaved(true))
         .catch(() => {});
     }
   }, [result, saved]);
@@ -45,9 +42,13 @@ function QuizResultContent() {
         body: JSON.stringify({ result }),
       });
       const data = await res.json();
-      setChallenge(data.challenge);
+      if (data.challenge) {
+        setChallenge(data.challenge);
+      } else if (data.error) {
+        setChallenge(`*Could not generate challenge: ${data.error}*`);
+      }
     } catch {
-      // silently fail
+      setChallenge("*Could not generate challenge. Please try again later.*");
     } finally {
       setLoadingChallenge(false);
     }
