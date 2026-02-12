@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs_22", "openssl"]
 
 [phases.install]
-cmds = ["corepack enable && pnpm i --frozen-lockfile"]
+cmds = ["npm install -g pnpm@10.28.2 && pnpm i --frozen-lockfile"]
 
 [phases.build]
 cmds = ["pnpm prisma generate && pnpm build"]
