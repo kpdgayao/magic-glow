@@ -7,6 +7,7 @@ export const XP_AWARDS = {
   GET_DAILY_ADVICE: 20,
   COMPLETE_QUIZ: 25,
   DAILY_CHECK_IN: 5,
+  LOG_EXPENSE: 5,
 } as const;
 
 export type XPAction = keyof typeof XP_AWARDS;

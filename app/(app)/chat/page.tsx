@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { formatMessage } from "@/lib/format-markdown";
 import { Send, Loader2, Sparkles, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -12,6 +12,7 @@ interface Message {
   id: string;
   role: "USER" | "ASSISTANT";
   content: string;
+  streaming?: boolean;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -32,18 +33,12 @@ function ChatContent() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchHistory();
+    setLoadingHistory(false);
   }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  async function fetchHistory() {
-    // We don't have a dedicated history endpoint, so we'll start fresh
-    // The chat API maintains history server-side
-    setLoadingHistory(false);
-  }
 
   async function handleSend(messageText?: string) {
     const text = messageText || input.trim();
@@ -55,7 +50,13 @@ function ChatContent() {
       content: text,
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const aiMsgId = (Date.now() + 1).toString();
+
+    setMessages((prev) => [
+      ...prev,
+      userMsg,
+      { id: aiMsgId, role: "ASSISTANT", content: "", streaming: true },
+    ]);
     setInput("");
     setLoading(true);
 
@@ -68,21 +69,62 @@ function ChatContent() {
 
       if (!res.ok) throw new Error();
 
-      const data = await res.json();
-      const aiMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "ASSISTANT",
-        content: data.message,
-      };
-      setMessages((prev) => [...prev, aiMsg]);
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) throw new Error();
+
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.text) {
+                accumulated += parsed.text;
+                const current = accumulated;
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === aiMsgId
+                      ? { ...m, content: current, streaming: true }
+                      : m
+                  )
+                );
+              }
+            } catch {
+              // Skip malformed JSON
+            }
+          }
+        }
+      }
+
+      // Finalize
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === aiMsgId ? { ...m, streaming: false } : m
+        )
+      );
     } catch {
-      const errMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "ASSISTANT",
-        content:
-          "Sorry, something went wrong. Please try again!",
-      };
-      setMessages((prev) => [...prev, errMsg]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === aiMsgId
+            ? {
+                ...m,
+                content: "Sorry, something went wrong. Please try again!",
+                streaming: false,
+              }
+            : m
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -162,32 +204,28 @@ function ChatContent() {
                 )}
               >
                 {msg.role === "ASSISTANT" ? (
-                  <div
-                    className="prose prose-invert prose-sm max-w-none
-                      [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5
-                      [&_strong]:text-foreground [&_em]:text-muted-foreground"
-                    dangerouslySetInnerHTML={{
-                      __html: formatMessage(msg.content),
-                    }}
-                  />
+                  msg.content ? (
+                    <div
+                      className="prose prose-invert prose-sm max-w-none
+                        [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5
+                        [&_strong]:text-foreground [&_em]:text-muted-foreground"
+                      dangerouslySetInnerHTML={{
+                        __html: formatMessage(msg.content),
+                      }}
+                    />
+                  ) : (
+                    <div className="flex gap-1">
+                      <span className="h-2 w-2 rounded-full bg-mg-pink animate-bounce" />
+                      <span className="h-2 w-2 rounded-full bg-mg-pink animate-bounce [animation-delay:150ms]" />
+                      <span className="h-2 w-2 rounded-full bg-mg-pink animate-bounce [animation-delay:300ms]" />
+                    </div>
+                  )
                 ) : (
                   msg.content
                 )}
               </div>
             </div>
           ))
-        )}
-
-        {loading && (
-          <div className="flex justify-start">
-            <div className="bg-card border border-border rounded-2xl rounded-bl-md px-4 py-3">
-              <div className="flex gap-1">
-                <span className="h-2 w-2 rounded-full bg-mg-pink animate-bounce" />
-                <span className="h-2 w-2 rounded-full bg-mg-pink animate-bounce [animation-delay:150ms]" />
-                <span className="h-2 w-2 rounded-full bg-mg-pink animate-bounce [animation-delay:300ms]" />
-              </div>
-            </div>
-          </div>
         )}
 
         <div ref={bottomRef} />
@@ -216,20 +254,6 @@ function ChatContent() {
       </div>
     </div>
   );
-}
-
-function formatMessage(text: string): string {
-  return text
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/^(\d+)\. (.+)$/gm, "<li>$2</li>")
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br/>")
-    .replace(/^/, "<p>")
-    .replace(/$/, "</p>");
 }
 
 export default function ChatPage() {

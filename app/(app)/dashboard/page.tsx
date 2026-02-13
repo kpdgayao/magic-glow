@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatMessage } from "@/lib/format-markdown";
 import {
   Calculator,
   TrendingUp,
@@ -38,16 +39,12 @@ interface StatsData {
   glowEmoji: string;
 }
 
-interface AdviceData {
-  advice: string;
-}
-
 const FEATURES = [
   {
     href: "/budget",
     icon: Calculator,
     label: "Budget",
-    desc: "50/30/20 Calculator",
+    desc: "Budget & Expenses",
     color: "text-mg-pink",
     bg: "bg-mg-pink/10",
   },
@@ -80,7 +77,7 @@ const FEATURES = [
 export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
-  const [advice, setAdvice] = useState<AdviceData | null>(null);
+  const [adviceText, setAdviceText] = useState<string | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(true);
 
   useEffect(() => {
@@ -94,9 +91,10 @@ export default function DashboardPage() {
       .then(setStats)
       .catch(() => {});
 
-    fetch("/api/advice")
+    // Use peek=true so dashboard never triggers slow generation
+    fetch("/api/advice?peek=true")
       .then((res) => res.json())
-      .then(setAdvice)
+      .then((data) => setAdviceText(data.advice || null))
       .catch(() => {})
       .finally(() => setAdviceLoading(false));
   }, []);
@@ -199,10 +197,14 @@ export default function DashboardPage() {
                     <Loader2 className="h-3 w-3 animate-spin" />
                     Loading your daily tip...
                   </div>
-                ) : advice?.advice ? (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {advice.advice}
-                  </p>
+                ) : adviceText ? (
+                  <div
+                    className="text-sm text-muted-foreground line-clamp-2
+                      [&_p]:inline [&_strong]:text-muted-foreground [&_em]:text-muted-foreground"
+                    dangerouslySetInnerHTML={{
+                      __html: formatMessage(adviceText),
+                    }}
+                  />
                 ) : (
                   <p className="text-sm text-muted-foreground">
                     Tap to get your personalized daily advice

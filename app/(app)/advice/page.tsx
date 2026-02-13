@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatMessage } from "@/lib/format-markdown";
 import { Sparkles, Flame, Trophy, Loader2 } from "lucide-react";
 
 interface StatsData {
@@ -28,18 +29,72 @@ export default function AdvicePage() {
   const [advice, setAdvice] = useState<string | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [streaming, setStreaming] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/advice")
-        .then((res) => res.json())
-        .then((data) => setAdvice(data.advice || null)),
+    async function loadData() {
+      // Fetch stats in parallel
       fetch("/api/user/stats")
         .then((res) => res.json())
-        .then(setStats),
-    ])
-      .catch(() => {})
-      .finally(() => setLoading(false));
+        .then(setStats)
+        .catch(() => {});
+
+      try {
+        const res = await fetch("/api/advice");
+        const contentType = res.headers.get("content-type") || "";
+
+        if (contentType.includes("text/event-stream")) {
+          // Streaming new advice
+          setLoading(false);
+          setStreaming(true);
+          const reader = res.body?.getReader();
+          const decoder = new TextDecoder();
+          if (!reader) return;
+
+          let accumulated = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") break;
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.text) {
+                    accumulated += parsed.text;
+                    setAdvice(accumulated);
+                  }
+                } catch {
+                  // Skip
+                }
+              }
+            }
+          }
+
+          setStreaming(false);
+          // Refresh stats after XP award
+          fetch("/api/user/stats")
+            .then((res) => res.json())
+            .then(setStats)
+            .catch(() => {});
+        } else {
+          // Cached JSON response
+          const data = await res.json();
+          setAdvice(data.advice || null);
+          setLoading(false);
+        }
+      } catch {
+        setLoading(false);
+      }
+    }
+
+    loadData();
   }, []);
 
   if (loading) {
@@ -71,13 +126,27 @@ export default function AdvicePage() {
         <CardContent className="p-5">
           <div className="flex items-start gap-3">
             <Sparkles className="h-6 w-6 text-mg-pink mt-0.5 shrink-0" />
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-mg-pink mb-2">
                 Today&apos;s Money Tip
               </p>
-              <p className="text-sm leading-relaxed">
-                {advice || "Come back tomorrow for a new tip!"}
-              </p>
+              {advice ? (
+                <div
+                  className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none
+                    [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5
+                    [&_strong]:text-foreground [&_em]:text-muted-foreground"
+                  dangerouslySetInnerHTML={{
+                    __html: formatMessage(advice),
+                  }}
+                />
+              ) : (
+                <p className="text-sm leading-relaxed">
+                  Come back tomorrow for a new tip!
+                </p>
+              )}
+              {streaming && (
+                <span className="inline-block w-1.5 h-4 bg-mg-pink animate-pulse ml-0.5 align-text-bottom" />
+              )}
             </div>
           </div>
         </CardContent>
@@ -181,6 +250,10 @@ export default function AdvicePage() {
             <div className="flex items-center justify-between">
               <span>Log income</span>
               <span className="font-medium text-mg-pink">+10 XP</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span>Log expense</span>
+              <span className="font-medium text-mg-pink">+5 XP</span>
             </div>
           </div>
         </CardContent>

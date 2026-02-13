@@ -57,3 +57,19 @@ export const budgetSchema = z.object({
 export const quizResultSchema = z.object({
   result: z.enum(["YOLO", "CHILL", "PLAN", "MASTER"]),
 });
+
+export const expenseSchema = z.object({
+  category: z.enum(["NEEDS", "WANTS", "SAVINGS"]),
+  subcategory: z.string().min(1).max(100),
+  amount: z.number().positive("Amount must be positive"),
+  date: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Invalid date",
+  }),
+  note: z.string().max(500).optional(),
+});
+
+export const monthlyBudgetSchema = z.object({
+  income: z.number().positive("Income must be positive"),
+  month: z.number().int().min(1).max(12).optional(),
+  year: z.number().int().min(2020).max(2100).optional(),
+});

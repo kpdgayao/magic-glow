@@ -73,7 +73,7 @@ moneyglow/
 │   │   ├── dashboard/page.tsx        # Home — feature cards, glow score, daily advice teaser
 │   │   ├── onboarding/page.tsx       # First-time user profile setup
 │   │   ├── advice/page.tsx           # Daily AI advice + streaks + XP/level display
-│   │   ├── budget/page.tsx           # 50/30/20 calculator
+│   │   ├── budget/page.tsx           # Monthly budget + expense tracking
 │   │   ├── grow/page.tsx             # Compound interest calculator
 │   │   ├── quiz/page.tsx             # Money personality quiz (5 questions)
 │   │   ├── quiz/result/page.tsx      # Quiz result + AI 30-day challenge
@@ -91,17 +91,20 @@ moneyglow/
 │       │   ├── profile/route.ts           # GET/PUT — user profile
 │       │   ├── stats/route.ts             # GET — gamification stats (XP, level, glow score, streak)
 │       │   └── onboarding/route.ts        # POST — complete onboarding
-│       ├── advice/route.ts                # GET — daily AI advice (cached per day)
-│       ├── chat/route.ts                  # POST — AI chat (streaming)
+│       ├── advice/route.ts                # GET — daily AI advice (streaming SSE, ?peek=true for cached)
+│       ├── chat/route.ts                  # POST — AI chat (streaming SSE)
 │       ├── quiz/
 │       │   └── result/route.ts            # POST — save result + generate AI challenge
 │       ├── income/route.ts                # GET/POST/DELETE — income entries (+XP award)
+│       ├── expenses/route.ts              # GET/POST/DELETE — expense tracking (+XP award)
+│       ├── monthly-budget/route.ts        # GET/POST — monthly budgets with spent aggregation
 │       └── budget/route.ts                # GET/POST — budget snapshots (+XP award)
 │
 ├── lib/
 │   ├── auth.ts                       # JWT sign/verify, getSession, requireAuth
 │   ├── prisma.ts                     # Prisma client singleton
-│   ├── claude.ts                     # Claude API helper + context builder + daily advice
+│   ├── claude.ts                     # Claude API helper + streaming + context builder + daily advice
+│   ├── format-markdown.ts            # Markdown→HTML converter for AI responses
 │   ├── gamification.ts               # XP awards, levels, glow score, streaks
 │   ├── mail.ts                       # Mailjet send magic link
 │   ├── validations.ts                # Zod schemas for all inputs
@@ -167,6 +170,12 @@ enum ChatRole {
   ASSISTANT
 }
 
+enum ExpenseCategory {
+  NEEDS
+  WANTS
+  SAVINGS
+}
+
 model User {
   id              String         @id @default(cuid())
   email           String         @unique
@@ -192,6 +201,8 @@ model User {
   budgetSnapshots BudgetSnapshot[]
   magicLinks      MagicLink[]
   dailyAdvice     DailyAdvice[]
+  expenses        Expense[]
+  monthlyBudgets  MonthlyBudget[]
 }
 
 model MagicLink {
@@ -254,6 +265,38 @@ model DailyAdvice {
 
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    ExpenseCategory
+  subcategory String
+  amount      Float
+  note        String?
+  date        DateTime
+  createdAt   DateTime        @default(now())
+
+  @@index([userId, date])
+  @@index([userId, category])
+}
+
+model MonthlyBudget {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month     Int
+  year      Int
+  income    Float
+  needs     Float
+  wants     Float
+  savings   Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, month, year])
+  @@index([userId, year, month])
 }
 ```
 
@@ -665,16 +708,24 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Daily AI advice teaser card (clickable, links to /advice)
 
 ### Budget Page (`/budget`)
-- Income input + quick preset buttons (₱5K, ₱10K, ₱20K, ₱50K, ₱100K)
-- Calculate button → show 50/30/20 split
-- Visual bar showing the 3 categories
-- Each category card with Filipino-relevant expense examples:
-  - NEEDS (50%): Rent/board, food, transpo, phone load/WiFi, school supplies
-  - WANTS (30%): Shopping, milk tea, Netflix/Spotify, eating out, gaming
-  - SAVINGS (20%): Emergency fund, GCash/Maya savings, future goals, investing
-- "Save Budget" button → stores BudgetSnapshot
-- "Get AI Advice" button → sends budget to chat with pre-filled message
+- **Month navigation**: "February 2026" with `<` `>` arrows
+- **First-time flow**: If no MonthlyBudget for current month, show income setup with presets (₱5K–₱100K)
+- **Budget summary card**: income, total spent, remaining — overall progress bar (green/amber/red)
+- **3 category cards** (Needs 50% / Wants 30% / Savings 20%):
+  - Budgeted amount, spent amount, remaining
+  - Colored progress bar: green (<80%), amber (80-100%), red (>100%)
+- **Add Expense** button → inline form:
+  - Category chips: Needs / Wants / Savings
+  - Subcategory chips (context-dependent):
+    - Needs: Food, Rent/Board, Transport, Load/WiFi, Utilities, School, Health, Other
+    - Wants: Shopping, Eating Out, Coffee/Milk Tea, Streaming, Gaming, Barkada, Online Shopping, Other
+    - Savings: Emergency Fund, GCash/Maya Savings, Investments, Pag-IBIG/SSS, Other
+  - Amount (₱), Date, Note (optional)
+- **Recent expenses list**: category color dot, subcategory, amount, date, delete button
+- **Over-budget feedback**: category bar turns red, toast notification when expense pushes category over
+- "Get AI Advice" button → sends budget + spending data to chat
 - Creator tip card at bottom
+- Awards 5 XP per expense logged, 15 XP for saving a budget
 
 ### Grow Page (`/grow`)
 - 3 sliders: Monthly savings (₱100–₱50,000), Years (1–30), Interest rate (1%–15%)
@@ -711,18 +762,19 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Pro tip card about tracking gross vs net income
 
 ### Chat Page (`/chat`)
-- Full-screen chat interface
+- Full-screen chat interface with **streaming responses** (SSE)
+- Messages stream in progressively (text appears as AI generates it)
+- Bounce animation shows until first chunk arrives, then switches to growing text
 - Chat history (from DB, last 20 messages)
 - Input bar at bottom with send button
-- Welcome message if no history: "Hi! I'm MoneyGlow AI ✨ Ask me anything about managing your money as a digital creator!"
-- Suggested quick prompts (tappable chips):
-  - "How do I start saving?"
-  - "Paano mag-budget with irregular income?"
-  - "What's the 50/30/20 rule?"
-  - "How much tax do content creators pay?"
-  - "Is this investment a scam?"
-- Messages render markdown (bold, lists, etc.)
-- Loading indicator while AI responds
+- Welcome message if no history
+- Suggested quick prompts (tappable chips)
+- Messages render markdown via shared `formatMessage()` utility (bold, lists, etc.)
+
+### Advice Page (`/advice`)
+- Daily AI-generated money tip with **streaming** (first visit) or instant display (cached)
+- Streak counter, glow score, XP/level display
+- Streaming cursor indicator while generating
 
 ### Profile Page (`/profile`)
 - View/edit: Name, Age, Income sources, Monthly income, Financial goal
@@ -826,10 +878,11 @@ const QUIZ_RESULTS = {
 ### XP Awards
 | Action | XP |
 |--------|-----|
-| Get daily advice | +20 |
 | Complete quiz | +25 |
+| Get daily advice | +20 |
 | Save a budget | +15 |
 | Log income | +10 |
+| Log expense | +5 |
 | Daily check-in | +5 |
 
 ### Levels

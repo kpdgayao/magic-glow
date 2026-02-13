@@ -115,6 +115,95 @@ export async function chat(userId: string, userMessage: string) {
   return assistantMessage;
 }
 
+export async function streamChat(userId: string, userMessage: string) {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+  });
+
+  const history = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  const messages = history.reverse().map((msg) => ({
+    role: msg.role.toLowerCase() as "user" | "assistant",
+    content: msg.content,
+  }));
+
+  messages.push({ role: "user", content: userMessage });
+
+  // Save user message to DB
+  await prisma.chatMessage.create({
+    data: { userId, role: "USER", content: userMessage },
+  });
+
+  const stream = getAnthropic().messages.stream({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 1024,
+    system: buildSystemPrompt(user),
+    messages,
+  });
+
+  return { stream, userId };
+}
+
+export async function saveChatResponse(userId: string, fullText: string) {
+  await prisma.chatMessage.create({
+    data: { userId, role: "ASSISTANT", content: fullText },
+  });
+
+  // Prune old messages (keep last 20)
+  const allMessages = await prisma.chatMessage.findMany({
+    where: { userId },
+    orderBy: { createdAt: "asc" },
+  });
+  if (allMessages.length > 20) {
+    const toDelete = allMessages.slice(0, allMessages.length - 20);
+    await prisma.chatMessage.deleteMany({
+      where: { id: { in: toDelete.map((m) => m.id) } },
+    });
+  }
+}
+
+export function streamDailyAdvice(user: {
+  name: string | null;
+  financialGoal: string | null;
+  monthlyIncome: number | null;
+  languagePref: "ENGLISH" | "TAGLISH";
+}) {
+  const lang =
+    user.languagePref === "TAGLISH"
+      ? "Respond in Taglish (mix of Tagalog and English, casual style)."
+      : "Respond in clear, simple English.";
+
+  const dayOfMonth = new Date().getDate() - 1;
+  const topic = ADVICE_TOPICS[dayOfMonth % ADVICE_TOPICS.length];
+
+  return getAnthropic().messages.stream({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 400,
+    system: `You are MoneyGlow AI, a friendly Filipino financial literacy coach for young digital creators. Give one daily money tip. ${lang}`,
+    messages: [
+      {
+        role: "user",
+        content: `Give a short, actionable daily money tip about: ${topic}
+
+Personalize for:
+- Name: ${user.name || "Friend"}
+- Goal: ${user.financialGoal || "financial literacy"}
+- Monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome.toLocaleString()}` : "varies"}
+
+Rules:
+- Max 3 sentences
+- Include one specific action they can do TODAY
+- Use peso amounts in examples
+- Be encouraging and warm`,
+      },
+    ],
+  });
+}
+
 export async function generateQuizChallenge(
   userId: string,
   quizResult: string

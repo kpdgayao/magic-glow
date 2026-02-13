@@ -1,208 +1,563 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import {
-  Calculator,
-  Save,
-  MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Trash2,
   Loader2,
+  MessageCircle,
   Lightbulb,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 
-const PRESETS = [5000, 10000, 20000, 50000, 100000];
+interface MonthlyBudget {
+  id: string;
+  income: number;
+  needs: number;
+  wants: number;
+  savings: number;
+  month: number;
+  year: number;
+}
 
-const CATEGORY_DETAILS = {
-  needs: {
-    label: "Needs",
-    percent: 50,
-    color: "bg-mg-pink",
-    examples: "Rent/board, food, transpo, phone load/WiFi, school supplies",
-  },
-  wants: {
-    label: "Wants",
-    percent: 30,
-    color: "bg-mg-amber",
-    examples:
-      "Shopping, milk tea, Netflix/Spotify, eating out, gaming",
-  },
-  savings: {
-    label: "Savings",
-    percent: 20,
-    color: "bg-mg-teal",
-    examples:
-      "Emergency fund, GCash/Maya savings, future goals, investing",
-  },
+interface Spent {
+  needs: number;
+  wants: number;
+  savings: number;
+  total: number;
+}
+
+interface Expense {
+  id: string;
+  category: "NEEDS" | "WANTS" | "SAVINGS";
+  subcategory: string;
+  amount: number;
+  note: string | null;
+  date: string;
+}
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const SUBCATEGORIES = {
+  NEEDS: ["Food", "Rent/Board", "Transport", "Load/WiFi", "Utilities", "School", "Health", "Other"],
+  WANTS: ["Shopping", "Eating Out", "Coffee/Milk Tea", "Streaming", "Gaming", "Barkada", "Online Shopping", "Other"],
+  SAVINGS: ["Emergency Fund", "GCash/Maya Savings", "Investments", "Pag-IBIG/SSS", "Other"],
 };
+
+const CATEGORY_CONFIG = {
+  NEEDS: { label: "Needs (50%)", color: "bg-mg-pink", textColor: "text-mg-pink", dotColor: "bg-mg-pink" },
+  WANTS: { label: "Wants (30%)", color: "bg-mg-amber", textColor: "text-mg-amber", dotColor: "bg-mg-amber" },
+  SAVINGS: { label: "Savings (20%)", color: "bg-mg-teal", textColor: "text-mg-teal", dotColor: "bg-mg-teal" },
+};
+
+const INCOME_PRESETS = [5000, 10000, 20000, 50000, 100000];
 
 export default function BudgetPage() {
   const router = useRouter();
-  const [income, setIncome] = useState("");
-  const [calculated, setCalculated] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [month, setMonth] = useState(() => new Date().getMonth() + 1);
+  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [budget, setBudget] = useState<MonthlyBudget | null>(null);
+  const [spent, setSpent] = useState<Spent>({ needs: 0, wants: 0, savings: 0, total: 0 });
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showSetup, setShowSetup] = useState(false);
+  const [incomeInput, setIncomeInput] = useState("");
+  const [savingBudget, setSavingBudget] = useState(false);
 
-  const incomeNum = parseFloat(income) || 0;
-  const needs = incomeNum * 0.5;
-  const wants = incomeNum * 0.3;
-  const savings = incomeNum * 0.2;
+  // Expense form state
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [expCategory, setExpCategory] = useState<"NEEDS" | "WANTS" | "SAVINGS">("NEEDS");
+  const [expSubcategory, setExpSubcategory] = useState("");
+  const [expAmount, setExpAmount] = useState("");
+  const [expNote, setExpNote] = useState("");
+  const [expDate, setExpDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [addingExpense, setAddingExpense] = useState(false);
 
-  function handleCalculate() {
-    if (incomeNum > 0) setCalculated(true);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [budgetRes, expensesRes] = await Promise.all([
+        fetch(`/api/monthly-budget?month=${month}&year=${year}`),
+        fetch(`/api/expenses?month=${month}&year=${year}`),
+      ]);
+
+      const budgetData = await budgetRes.json();
+      const expensesData = await expensesRes.json();
+
+      setBudget(budgetData.budget);
+      setSpent(budgetData.spent || { needs: 0, wants: 0, savings: 0, total: 0 });
+      setExpenses(expensesData.expenses || []);
+
+      if (!budgetData.budget) {
+        setShowSetup(true);
+      } else {
+        setShowSetup(false);
+      }
+    } catch {
+      toast.error("Failed to load budget data");
+    } finally {
+      setLoading(false);
+    }
+  }, [month, year]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  function prevMonth() {
+    if (month === 1) {
+      setMonth(12);
+      setYear((y) => y - 1);
+    } else {
+      setMonth((m) => m - 1);
+    }
   }
 
-  async function handleSave() {
-    setSaving(true);
+  function nextMonth() {
+    if (month === 12) {
+      setMonth(1);
+      setYear((y) => y + 1);
+    } else {
+      setMonth((m) => m + 1);
+    }
+  }
+
+  async function handleSaveBudget() {
+    const income = parseFloat(incomeInput);
+    if (!income || income <= 0) return;
+    setSavingBudget(true);
     try {
-      const res = await fetch("/api/budget", {
+      const res = await fetch("/api/monthly-budget", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ income: incomeNum }),
+        body: JSON.stringify({ income, month, year }),
       });
       if (!res.ok) throw new Error();
-      toast.success("Budget saved!");
+      toast.success("Budget saved! +15 XP");
+      setShowSetup(false);
+      setIncomeInput("");
+      fetchData();
     } catch {
       toast.error("Failed to save budget");
     } finally {
-      setSaving(false);
+      setSavingBudget(false);
+    }
+  }
+
+  async function handleAddExpense() {
+    const amount = parseFloat(expAmount);
+    if (!amount || amount <= 0 || !expSubcategory) return;
+    setAddingExpense(true);
+    try {
+      const res = await fetch("/api/expenses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: expCategory,
+          subcategory: expSubcategory,
+          amount,
+          date: expDate,
+          note: expNote || undefined,
+        }),
+      });
+      if (!res.ok) throw new Error();
+
+      // Check if over budget after adding
+      const catKey = expCategory.toLowerCase() as "needs" | "wants" | "savings";
+      const newSpent = spent[catKey] + amount;
+      const budgeted = budget ? budget[catKey] : 0;
+      if (budget && newSpent > budgeted) {
+        toast.warning(
+          `${CATEGORY_CONFIG[expCategory].label.split(" ")[0]} is over budget!`,
+          { description: `${formatCurrency(newSpent)} spent of ${formatCurrency(budgeted)} budgeted` }
+        );
+      } else {
+        toast.success("Expense added! +5 XP");
+      }
+
+      setExpAmount("");
+      setExpNote("");
+      setExpSubcategory("");
+      setShowExpenseForm(false);
+      fetchData();
+    } catch {
+      toast.error("Failed to add expense");
+    } finally {
+      setAddingExpense(false);
+    }
+  }
+
+  async function handleDeleteExpense(id: string) {
+    try {
+      const res = await fetch(`/api/expenses?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast.success("Expense deleted");
+      fetchData();
+    } catch {
+      toast.error("Failed to delete expense");
     }
   }
 
   function handleAskAI() {
-    const msg = `I earn ${formatCurrency(incomeNum)} monthly. My 50/30/20 budget is: Needs ${formatCurrency(needs)}, Wants ${formatCurrency(wants)}, Savings ${formatCurrency(savings)}. Any tips to improve my budget?`;
+    if (!budget) return;
+    const msg = `I earn ${formatCurrency(budget.income)} monthly. My 50/30/20 budget is: Needs ${formatCurrency(budget.needs)}, Wants ${formatCurrency(budget.wants)}, Savings ${formatCurrency(budget.savings)}. This month I've spent: Needs ${formatCurrency(spent.needs)}, Wants ${formatCurrency(spent.wants)}, Savings ${formatCurrency(spent.savings)}. Any tips to improve my budget?`;
     router.push(`/chat?prefill=${encodeURIComponent(msg)}`);
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-mg-pink" />
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-5 pb-28">
+      {/* Header */}
       <div className="pt-2">
         <h1 className="font-[family-name:var(--font-playfair)] text-2xl font-bold">
-          Budget Calculator
+          Budget
         </h1>
         <p className="text-sm text-muted-foreground">
-          The 50/30/20 rule — simple and effective
+          Track your spending with 50/30/20
         </p>
       </div>
 
-      {/* Income Input */}
-      <Card className="border-border bg-card">
-        <CardContent className="p-4 space-y-4">
-          <div className="space-y-2">
-            <Label>Monthly Income</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-                ₱
-              </span>
-              <Input
-                type="number"
-                placeholder="0"
-                value={income}
-                onChange={(e) => {
-                  setIncome(e.target.value);
-                  setCalculated(false);
-                }}
-                className="pl-8 bg-background border-border text-lg"
-              />
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between">
+        <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-card transition-colors">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <p className="font-semibold">{MONTHS[month - 1]} {year}</p>
+        <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-card transition-colors">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Setup View (no budget yet) */}
+      {showSetup ? (
+        <Card className="border-border bg-card">
+          <CardContent className="p-5 space-y-4">
+            <div className="text-center space-y-1">
+              <p className="font-semibold">Set Your Monthly Budget</p>
+              <p className="text-xs text-muted-foreground">
+                Enter your income to create a 50/30/20 budget
+              </p>
             </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {PRESETS.map((p) => (
-              <button
-                key={p}
-                onClick={() => {
-                  setIncome(String(p));
-                  setCalculated(false);
-                }}
-                className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium hover:border-mg-pink hover:text-mg-pink transition-colors"
-              >
-                {formatCurrency(p)}
-              </button>
-            ))}
-          </div>
-
-          <Button
-            onClick={handleCalculate}
-            disabled={incomeNum <= 0}
-            className="w-full bg-mg-pink hover:bg-mg-pink/90 text-white"
-          >
-            <Calculator className="h-4 w-4 mr-2" />
-            Calculate
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Results */}
-      {calculated && (
+            <div className="space-y-2">
+              <Label>Monthly Income</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                  &#8369;
+                </span>
+                <Input
+                  type="number"
+                  placeholder="0"
+                  value={incomeInput}
+                  onChange={(e) => setIncomeInput(e.target.value)}
+                  className="pl-8 bg-background border-border text-lg"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {INCOME_PRESETS.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setIncomeInput(String(p))}
+                  className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium hover:border-mg-pink hover:text-mg-pink transition-colors"
+                >
+                  {formatCurrency(p)}
+                </button>
+              ))}
+            </div>
+            <Button
+              onClick={handleSaveBudget}
+              disabled={!parseFloat(incomeInput) || savingBudget}
+              className="w-full bg-mg-pink hover:bg-mg-pink/90 text-white"
+            >
+              {savingBudget ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Create Budget
+            </Button>
+          </CardContent>
+        </Card>
+      ) : budget ? (
         <>
-          {/* Budget Bar */}
-          <div className="h-6 rounded-full overflow-hidden flex">
-            <div
-              className="bg-mg-pink transition-all"
-              style={{ width: "50%" }}
-            />
-            <div
-              className="bg-mg-amber transition-all"
-              style={{ width: "30%" }}
-            />
-            <div
-              className="bg-mg-teal transition-all"
-              style={{ width: "20%" }}
-            />
-          </div>
+          {/* Budget Summary */}
+          <Card className="border-border bg-card">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Monthly Budget</p>
+                <button
+                  onClick={() => {
+                    setIncomeInput(String(budget.income));
+                    setShowSetup(true);
+                  }}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">Spent</p>
+                  <p className="text-lg font-bold">{formatCurrency(spent.total)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">of</p>
+                  <p className="text-lg font-bold text-muted-foreground">{formatCurrency(budget.income)}</p>
+                </div>
+              </div>
+              {/* Overall progress bar */}
+              <div className="h-3 rounded-full overflow-hidden bg-border">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    spent.total / budget.income > 1
+                      ? "bg-red-500"
+                      : spent.total / budget.income > 0.8
+                      ? "bg-mg-amber"
+                      : "bg-mg-teal"
+                  )}
+                  style={{ width: `${Math.min((spent.total / budget.income) * 100, 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-right">
+                {formatCurrency(Math.max(budget.income - spent.total, 0))} remaining
+              </p>
+            </CardContent>
+          </Card>
 
           {/* Category Cards */}
-          {Object.entries(CATEGORY_DETAILS).map(([key, cat]) => {
-            const amount =
-              key === "needs" ? needs : key === "wants" ? wants : savings;
+          {(["NEEDS", "WANTS", "SAVINGS"] as const).map((cat) => {
+            const config = CATEGORY_CONFIG[cat];
+            const catKey = cat.toLowerCase() as "needs" | "wants" | "savings";
+            const budgeted = budget[catKey];
+            const spentAmt = spent[catKey];
+            const remaining = budgeted - spentAmt;
+            const pct = budgeted > 0 ? (spentAmt / budgeted) * 100 : 0;
+            const isOver = spentAmt > budgeted;
+
             return (
-              <Card key={key} className="border-border bg-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
+              <Card key={cat} className="border-border bg-card">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${cat.color}`} />
-                      <span className="font-semibold text-sm">
-                        {cat.label} ({cat.percent}%)
-                      </span>
+                      <div className={`h-3 w-3 rounded-full ${config.dotColor}`} />
+                      <span className="font-semibold text-sm">{config.label}</span>
                     </div>
-                    <span className="font-bold text-lg">
-                      {formatCurrency(amount)}
+                    <span className="text-sm font-medium">
+                      {formatCurrency(spentAmt)}{" "}
+                      <span className="text-muted-foreground">/ {formatCurrency(budgeted)}</span>
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {cat.examples}
+                  <div className="h-2.5 rounded-full overflow-hidden bg-border">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all",
+                        isOver ? "bg-red-500" : pct > 80 ? "bg-mg-amber" : config.color
+                      )}
+                      style={{ width: `${Math.min(pct, 100)}%` }}
+                    />
+                  </div>
+                  <p className={cn("text-xs", isOver ? "text-red-400" : "text-muted-foreground")}>
+                    {isOver
+                      ? `Over by ${formatCurrency(Math.abs(remaining))}`
+                      : `${formatCurrency(remaining)} left`}
                   </p>
                 </CardContent>
               </Card>
             );
           })}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3">
+          {/* Add Expense Button / Form */}
+          {!showExpenseForm ? (
             <Button
-              onClick={handleSave}
-              disabled={saving}
-              variant="outline"
-              className="flex-1"
+              onClick={() => setShowExpenseForm(true)}
+              className="w-full bg-mg-pink hover:bg-mg-pink/90 text-white"
             >
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save Budget
+              <Plus className="h-4 w-4 mr-2" />
+              Add Expense
             </Button>
+          ) : (
+            <Card className="border-mg-pink/30 bg-card">
+              <CardContent className="p-4 space-y-4">
+                <p className="text-sm font-semibold">Add Expense</p>
+
+                {/* Category chips */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Category</Label>
+                  <div className="flex gap-2">
+                    {(["NEEDS", "WANTS", "SAVINGS"] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => {
+                          setExpCategory(cat);
+                          setExpSubcategory("");
+                        }}
+                        className={cn(
+                          "rounded-full px-3 py-1.5 text-xs font-medium border transition-colors",
+                          expCategory === cat
+                            ? `${CATEGORY_CONFIG[cat].color} text-white border-transparent`
+                            : "border-border bg-background hover:border-muted-foreground"
+                        )}
+                      >
+                        {cat.charAt(0) + cat.slice(1).toLowerCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Subcategory chips */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">What for?</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {SUBCATEGORIES[expCategory].map((sub) => (
+                      <button
+                        key={sub}
+                        onClick={() => setExpSubcategory(sub)}
+                        className={cn(
+                          "rounded-full px-3 py-1.5 text-xs font-medium border transition-colors",
+                          expSubcategory === sub
+                            ? "bg-foreground text-background border-transparent"
+                            : "border-border bg-background hover:border-muted-foreground"
+                        )}
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Amount</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">
+                      &#8369;
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={expAmount}
+                      onChange={(e) => setExpAmount(e.target.value)}
+                      className="pl-8 bg-background border-border"
+                    />
+                  </div>
+                </div>
+
+                {/* Date */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Date</Label>
+                  <Input
+                    type="date"
+                    value={expDate}
+                    onChange={(e) => setExpDate(e.target.value)}
+                    className="bg-background border-border"
+                  />
+                </div>
+
+                {/* Note */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Note (optional)</Label>
+                  <Input
+                    placeholder="e.g. Jollibee with barkada"
+                    value={expNote}
+                    onChange={(e) => setExpNote(e.target.value)}
+                    className="bg-background border-border"
+                  />
+                </div>
+
+                {/* Form buttons */}
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowExpenseForm(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddExpense}
+                    disabled={addingExpense || !expSubcategory || !parseFloat(expAmount)}
+                    className="flex-1 bg-mg-pink hover:bg-mg-pink/90 text-white"
+                  >
+                    {addingExpense ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Plus className="h-4 w-4 mr-2" />
+                    )}
+                    Add
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Recent Expenses */}
+          {expenses.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold">Recent Expenses</p>
+              {expenses.map((exp) => {
+                const config = CATEGORY_CONFIG[exp.category];
+                return (
+                  <div
+                    key={exp.id}
+                    className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${config.dotColor}`} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{exp.subcategory}</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {new Date(exp.date).toLocaleDateString("en-PH", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                          {exp.note ? ` — ${exp.note}` : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm font-semibold">
+                        {formatCurrency(exp.amount)}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteExpense(exp.id)}
+                        className="text-muted-foreground hover:text-red-400 transition-colors p-1"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="space-y-3">
             <Button
               onClick={handleAskAI}
-              className="flex-1 bg-mg-pink hover:bg-mg-pink/90 text-white"
+              variant="outline"
+              className="w-full"
             >
               <MessageCircle className="h-4 w-4 mr-2" />
-              Get AI Advice
+              Get AI Advice on My Budget
             </Button>
           </div>
 
@@ -224,7 +579,7 @@ export default function BudgetPage() {
             </CardContent>
           </Card>
         </>
-      )}
+      ) : null}
     </div>
   );
 }

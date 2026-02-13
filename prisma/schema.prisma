@@ -31,6 +31,12 @@ enum ChatRole {
   ASSISTANT
 }
 
+enum ExpenseCategory {
+  NEEDS
+  WANTS
+  SAVINGS
+}
+
 model User {
   id            String        @id @default(cuid())
   email         String        @unique
@@ -56,6 +62,8 @@ model User {
   budgetSnapshots BudgetSnapshot[]
   magicLinks      MagicLink[]
   dailyAdvice     DailyAdvice[]
+  expenses        Expense[]
+  monthlyBudgets  MonthlyBudget[]
 }
 
 model MagicLink {
@@ -118,4 +126,36 @@ model DailyAdvice {
 
   @@unique([userId, date])
   @@index([userId, date])
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category    ExpenseCategory
+  subcategory String
+  amount      Float
+  note        String?
+  date        DateTime
+  createdAt   DateTime        @default(now())
+
+  @@index([userId, date])
+  @@index([userId, category])
+}
+
+model MonthlyBudget {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  month     Int
+  year      Int
+  income    Float
+  needs     Float
+  wants     Float
+  savings   Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, month, year])
+  @@index([userId, year, month])
 }
