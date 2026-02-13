@@ -37,6 +37,26 @@ enum ExpenseCategory {
   SAVINGS
 }
 
+enum EmploymentStatus {
+  FULL_TIME_CREATOR
+  STUDENT
+  PART_TIME_PLUS_CREATOR
+  EMPLOYED_PLUS_SIDE_HUSTLE
+}
+
+enum EmergencyFundStatus {
+  YES
+  NO
+  BUILDING
+}
+
+enum DebtSituation {
+  NONE
+  STUDENT_LOAN
+  CREDIT_CARD
+  INFORMAL_DEBT
+}
+
 model User {
   id            String        @id @default(cuid())
   email         String        @unique
@@ -46,9 +66,12 @@ model User {
   monthlyIncome Float?
   financialGoal FinancialGoal?
   languagePref  LanguagePref  @default(ENGLISH)
-  quizResult    QuizResult?
-  quizChallenge String?
-  onboarded     Boolean       @default(false)
+  quizResult        QuizResult?
+  quizChallenge     String?
+  employmentStatus  EmploymentStatus?
+  hasEmergencyFund  EmergencyFundStatus?
+  debtSituation     DebtSituation?
+  onboarded         Boolean       @default(false)
   streakCount   Int           @default(0)
   lastCheckIn   DateTime?
   longestStreak Int           @default(0)

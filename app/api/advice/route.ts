@@ -39,8 +39,14 @@ export async function GET(req: NextRequest) {
       where: { id: session.userId },
       select: {
         name: true,
+        age: true,
+        incomeSources: true,
         financialGoal: true,
         monthlyIncome: true,
+        quizResult: true,
+        employmentStatus: true,
+        hasEmergencyFund: true,
+        debtSituation: true,
         languagePref: true,
       },
     });

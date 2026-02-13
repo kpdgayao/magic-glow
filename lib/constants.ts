@@ -72,6 +72,26 @@ export const EXPENSE_SUBCATEGORIES = {
   SAVINGS: ["Emergency Fund", "GCash/Maya Savings", "Investments", "Pag-IBIG/SSS", "Other"],
 };
 
+export const EMPLOYMENT_STATUSES = [
+  { value: "FULL_TIME_CREATOR", label: "Full-time Creator" },
+  { value: "STUDENT", label: "Student" },
+  { value: "PART_TIME_PLUS_CREATOR", label: "Part-time Job + Creator" },
+  { value: "EMPLOYED_PLUS_SIDE_HUSTLE", label: "Employed + Side Hustle" },
+];
+
+export const EMERGENCY_FUND_OPTIONS = [
+  { value: "YES", label: "Yes, I have one" },
+  { value: "NO", label: "Not yet" },
+  { value: "BUILDING", label: "Building one now" },
+];
+
+export const DEBT_SITUATIONS = [
+  { value: "NONE", label: "No debt" },
+  { value: "STUDENT_LOAN", label: "Student loan" },
+  { value: "CREDIT_CARD", label: "Credit card debt" },
+  { value: "INFORMAL_DEBT", label: "Informal debt (family/friends)" },
+];
+
 export const BUDGET_PRESETS = [5000, 10000, 20000, 50000, 100000];
 
 export const MONTHS = [

@@ -12,7 +12,13 @@ import { cn } from "@/lib/utils";
 import { Save, LogOut, Loader2, Brain, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { QUIZ_RESULTS, type QuizResultType } from "@/lib/quiz-data";
-import { INCOME_SOURCES, FINANCIAL_GOALS } from "@/lib/constants";
+import {
+  INCOME_SOURCES,
+  FINANCIAL_GOALS,
+  EMPLOYMENT_STATUSES,
+  EMERGENCY_FUND_OPTIONS,
+  DEBT_SITUATIONS,
+} from "@/lib/constants";
 
 interface UserProfile {
   id: string;
@@ -22,6 +28,9 @@ interface UserProfile {
   incomeSources: string[];
   monthlyIncome: number | null;
   financialGoal: string | null;
+  employmentStatus: string | null;
+  hasEmergencyFund: string | null;
+  debtSituation: string | null;
   languagePref: "ENGLISH" | "TAGLISH";
   quizResult: QuizResultType | null;
 }
@@ -49,6 +58,9 @@ export default function ProfilePage() {
   const [incomeSources, setIncomeSources] = useState<string[]>([]);
   const [monthlyIncome, setMonthlyIncome] = useState("");
   const [financialGoal, setFinancialGoal] = useState("");
+  const [employmentStatus, setEmploymentStatus] = useState("");
+  const [hasEmergencyFund, setHasEmergencyFund] = useState("");
+  const [debtSituation, setDebtSituation] = useState("");
   const [languagePref, setLanguagePref] = useState<"ENGLISH" | "TAGLISH">(
     "ENGLISH"
   );
@@ -63,6 +75,9 @@ export default function ProfilePage() {
         setIncomeSources(data.incomeSources || []);
         setMonthlyIncome(data.monthlyIncome?.toString() || "");
         setFinancialGoal(data.financialGoal || "");
+        setEmploymentStatus(data.employmentStatus || "");
+        setHasEmergencyFund(data.hasEmergencyFund || "");
+        setDebtSituation(data.debtSituation || "");
         setLanguagePref(data.languagePref || "ENGLISH");
       })
       .catch(() => toast.error("Failed to load profile"))
@@ -97,6 +112,9 @@ export default function ProfilePage() {
           incomeSources,
           monthlyIncome: parseFloat(monthlyIncome) || undefined,
           financialGoal: financialGoal || undefined,
+          employmentStatus: employmentStatus || null,
+          hasEmergencyFund: hasEmergencyFund || null,
+          debtSituation: debtSituation || null,
           languagePref,
         }),
       });
@@ -290,6 +308,78 @@ export default function ProfilePage() {
                   )}
                 >
                   {goal.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Employment Status</Label>
+            <div className="space-y-2">
+              {EMPLOYMENT_STATUSES.map((status) => (
+                <button
+                  key={status.value}
+                  onClick={() =>
+                    setEmploymentStatus(
+                      employmentStatus === status.value ? "" : status.value
+                    )
+                  }
+                  className={cn(
+                    "w-full rounded-lg border p-3 text-left text-sm transition-colors",
+                    employmentStatus === status.value
+                      ? "bg-mg-pink text-white border-mg-pink"
+                      : "bg-background border-border hover:border-muted-foreground"
+                  )}
+                >
+                  {status.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Emergency Fund</Label>
+            <div className="flex flex-wrap gap-2">
+              {EMERGENCY_FUND_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() =>
+                    setHasEmergencyFund(
+                      hasEmergencyFund === opt.value ? "" : opt.value
+                    )
+                  }
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium border transition-colors",
+                    hasEmergencyFund === opt.value
+                      ? "bg-mg-pink text-white border-mg-pink"
+                      : "bg-background border-border hover:border-muted-foreground"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Debt Situation</Label>
+            <div className="flex flex-wrap gap-2">
+              {DEBT_SITUATIONS.map((debt) => (
+                <button
+                  key={debt.value}
+                  onClick={() =>
+                    setDebtSituation(
+                      debtSituation === debt.value ? "" : debt.value
+                    )
+                  }
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium border transition-colors",
+                    debtSituation === debt.value
+                      ? "bg-mg-pink text-white border-mg-pink"
+                      : "bg-background border-border hover:border-muted-foreground"
+                  )}
+                >
+                  {debt.label}
                 </button>
               ))}
             </div>

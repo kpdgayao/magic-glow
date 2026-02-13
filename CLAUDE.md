@@ -187,18 +187,41 @@ enum ExpenseCategory {
   SAVINGS
 }
 
+enum EmploymentStatus {
+  FULL_TIME_CREATOR
+  STUDENT
+  PART_TIME_PLUS_CREATOR
+  EMPLOYED_PLUS_SIDE_HUSTLE
+}
+
+enum EmergencyFundStatus {
+  YES
+  NO
+  BUILDING
+}
+
+enum DebtSituation {
+  NONE
+  STUDENT_LOAN
+  CREDIT_CARD
+  INFORMAL_DEBT
+}
+
 model User {
-  id              String         @id @default(cuid())
-  email           String         @unique
-  name            String?
-  age             Int?
-  incomeSources   String[]       // ["TikTok", "YouTube", "GCash", etc.]
-  monthlyIncome   Float?
-  financialGoal   FinancialGoal?
-  languagePref    LanguagePref   @default(ENGLISH)
-  quizResult      QuizResult?
-  quizChallenge   String?        // AI-generated 30-day challenge (markdown)
-  onboarded       Boolean        @default(false)
+  id                String              @id @default(cuid())
+  email             String              @unique
+  name              String?
+  age               Int?
+  incomeSources     String[]            // ["TikTok", "YouTube", "GCash", etc.]
+  monthlyIncome     Float?
+  financialGoal     FinancialGoal?
+  languagePref      LanguagePref        @default(ENGLISH)
+  quizResult        QuizResult?
+  quizChallenge     String?             // AI-generated 30-day challenge (markdown)
+  employmentStatus  EmploymentStatus?
+  hasEmergencyFund  EmergencyFundStatus?
+  debtSituation     DebtSituation?
+  onboarded         Boolean             @default(false)
   streakCount     Int            @default(0)
   lastCheckIn     DateTime?
   longestStreak   Int            @default(0)
@@ -473,6 +496,9 @@ interface UserContext {
   monthlyIncome: number | null;
   financialGoal: string | null;
   quizResult: string | null;
+  employmentStatus: string | null;
+  hasEmergencyFund: string | null;
+  debtSituation: string | null;
   languagePref: 'ENGLISH' | 'TAGLISH';
 }
 
@@ -494,9 +520,12 @@ function buildSystemPrompt(user: UserContext): string {
 ## USER PROFILE
 - Name: ${user.name || 'not set'}
 - Age: ${user.age || 'not set'}
+- Employment: ${user.employmentStatus?.replace(/_/g, ' ').toLowerCase() || 'not set'}
 - Income sources: ${user.incomeSources.length > 0 ? user.incomeSources.join(', ') : 'not set'}
 - Estimated monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome.toLocaleString()}` : 'not set'}
-- Financial goal: ${user.financialGoal || 'not set'}
+- Financial goal: ${user.financialGoal?.replace(/_/g, ' ').toLowerCase() || 'not set'}
+- Has emergency fund: ${user.hasEmergencyFund?.toLowerCase() || 'not set'}
+- Debt situation: ${user.debtSituation?.replace(/_/g, ' ').toLowerCase() || 'not set'}
 - Money personality: ${user.quizResult || 'not taken yet'}
 
 ## CONTEXT
@@ -703,7 +732,10 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Step 2: Income sources (multi-select chips: TikTok, YouTube, Instagram, Facebook, GCash, Maya, Shopee, Lazada, Freelance, Allowance, Part-time Job, Other)
 - Step 3: Estimated monthly income (preset buttons: ₱1K–5K, ₱5K–10K, ₱10K–20K, ₱20K–50K, ₱50K–100K, ₱100K+)
 - Step 4: Financial goal (single select: Save Emergency Fund, Pay Off Debt, Start Investing, Budget Better, Grow Creator Income)
-- Step 5: Language preference (English / Taglish)
+- Step 5: Employment status (optional — Full-time Creator, Student, Part-time Job + Creator, Employed + Side Hustle)
+- Step 6: Emergency fund (optional — Yes, Not yet, Building one now)
+- Step 7: Debt situation (optional — No debt, Student loan, Credit card debt, Informal debt)
+- Step 8: Language preference (English / Taglish)
 - Progress bar at top
 - "Get Started" button → redirect to dashboard
 
@@ -788,7 +820,7 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Streaming cursor indicator while generating
 
 ### Profile Page (`/profile`)
-- View/edit: Name, Age, Income sources, Monthly income, Financial goal
+- View/edit: Name, Age, Income sources, Monthly income, Financial goal, Employment status, Emergency fund, Debt situation
 - Language preference toggle (English / Taglish)
 - Quiz result display (if taken) with "Retake Quiz" button
 - "Take Money Personality Quiz" button (if quiz not taken)

@@ -20,6 +20,14 @@ export const onboardingSchema = z.object({
     "BUDGET_BETTER",
     "GROW_CREATOR_INCOME",
   ]),
+  employmentStatus: z.enum([
+    "FULL_TIME_CREATOR",
+    "STUDENT",
+    "PART_TIME_PLUS_CREATOR",
+    "EMPLOYED_PLUS_SIDE_HUSTLE",
+  ]).optional(),
+  hasEmergencyFund: z.enum(["YES", "NO", "BUILDING"]).optional(),
+  debtSituation: z.enum(["NONE", "STUDENT_LOAN", "CREDIT_CARD", "INFORMAL_DEBT"]).optional(),
   languagePref: z.enum(["ENGLISH", "TAGLISH"]),
 });
 
@@ -37,6 +45,14 @@ export const profileUpdateSchema = z.object({
       "GROW_CREATOR_INCOME",
     ])
     .optional(),
+  employmentStatus: z.enum([
+    "FULL_TIME_CREATOR",
+    "STUDENT",
+    "PART_TIME_PLUS_CREATOR",
+    "EMPLOYED_PLUS_SIDE_HUSTLE",
+  ]).nullable().optional(),
+  hasEmergencyFund: z.enum(["YES", "NO", "BUILDING"]).nullable().optional(),
+  debtSituation: z.enum(["NONE", "STUDENT_LOAN", "CREDIT_CARD", "INFORMAL_DEBT"]).nullable().optional(),
   languagePref: z.enum(["ENGLISH", "TAGLISH"]).optional(),
 });
 

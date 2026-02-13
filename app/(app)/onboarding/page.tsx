@@ -10,9 +10,16 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Loader2, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { INCOME_SOURCES, INCOME_RANGES, FINANCIAL_GOALS } from "@/lib/constants";
+import {
+  INCOME_SOURCES,
+  INCOME_RANGES,
+  FINANCIAL_GOALS,
+  EMPLOYMENT_STATUSES,
+  EMERGENCY_FUND_OPTIONS,
+  DEBT_SITUATIONS,
+} from "@/lib/constants";
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 8;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -23,6 +30,9 @@ export default function OnboardingPage() {
   const [incomeSources, setIncomeSources] = useState<string[]>([]);
   const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null);
   const [financialGoal, setFinancialGoal] = useState("");
+  const [employmentStatus, setEmploymentStatus] = useState("");
+  const [hasEmergencyFund, setHasEmergencyFund] = useState("");
+  const [debtSituation, setDebtSituation] = useState("");
   const [languagePref, setLanguagePref] = useState<"ENGLISH" | "TAGLISH">(
     "ENGLISH"
   );
@@ -45,7 +55,10 @@ export default function OnboardingPage() {
         return monthlyIncome !== null;
       case 4:
         return financialGoal !== "";
-      case 5:
+      case 5: // employment — optional
+      case 6: // emergency fund — optional
+      case 7: // debt — optional
+      case 8: // language
         return true;
       default:
         return false;
@@ -64,6 +77,9 @@ export default function OnboardingPage() {
           incomeSources,
           monthlyIncome,
           financialGoal,
+          employmentStatus: employmentStatus || undefined,
+          hasEmergencyFund: hasEmergencyFund || undefined,
+          debtSituation: debtSituation || undefined,
           languagePref,
         }),
       });
@@ -218,6 +234,93 @@ export default function OnboardingPage() {
         )}
 
         {step === 5 && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold">
+                What&apos;s your setup?
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                This helps us personalize your advice. Optional — you can skip this.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {EMPLOYMENT_STATUSES.map((status) => (
+                <button
+                  key={status.value}
+                  onClick={() => setEmploymentStatus(status.value)}
+                  className={cn(
+                    "w-full rounded-xl border p-4 text-left transition-colors",
+                    employmentStatus === status.value
+                      ? "bg-mg-pink text-white border-mg-pink"
+                      : "bg-card border-border hover:border-muted-foreground"
+                  )}
+                >
+                  <span className="font-medium">{status.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 6 && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold">
+                Emergency fund?
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Do you have savings set aside for emergencies? Optional.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {EMERGENCY_FUND_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setHasEmergencyFund(opt.value)}
+                  className={cn(
+                    "w-full rounded-xl border p-4 text-left transition-colors",
+                    hasEmergencyFund === opt.value
+                      ? "bg-mg-pink text-white border-mg-pink"
+                      : "bg-card border-border hover:border-muted-foreground"
+                  )}
+                >
+                  <span className="font-medium">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 7 && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold">
+                Any debt?
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                No judgment — this helps us give better advice. Optional.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {DEBT_SITUATIONS.map((debt) => (
+                <button
+                  key={debt.value}
+                  onClick={() => setDebtSituation(debt.value)}
+                  className={cn(
+                    "w-full rounded-xl border p-4 text-left transition-colors",
+                    debtSituation === debt.value
+                      ? "bg-mg-pink text-white border-mg-pink"
+                      : "bg-card border-border hover:border-muted-foreground"
+                  )}
+                >
+                  <span className="font-medium">{debt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 8 && (
           <div className="space-y-6">
             <div>
               <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold">

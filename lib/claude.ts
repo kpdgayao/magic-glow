@@ -21,6 +21,9 @@ interface UserContext {
   monthlyIncome: number | null;
   financialGoal: string | null;
   quizResult: string | null;
+  employmentStatus: string | null;
+  hasEmergencyFund: string | null;
+  debtSituation: string | null;
   languagePref: "ENGLISH" | "TAGLISH";
 }
 
@@ -43,9 +46,12 @@ function buildSystemPrompt(user: UserContext): string {
 ## USER PROFILE
 - Name: ${user.name || "not set"}
 - Age: ${user.age || "not set"}
+- Employment: ${user.employmentStatus?.replace(/_/g, " ").toLowerCase() || "not set"}
 - Income sources: ${user.incomeSources.length > 0 ? user.incomeSources.join(", ") : "not set"}
 - Estimated monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome.toLocaleString()}` : "not set"}
-- Financial goal: ${user.financialGoal || "not set"}
+- Financial goal: ${user.financialGoal?.replace(/_/g, " ").toLowerCase() || "not set"}
+- Has emergency fund: ${user.hasEmergencyFund?.toLowerCase() || "not set"}
+- Debt situation: ${user.debtSituation?.replace(/_/g, " ").toLowerCase() || "not set"}
 - Money personality: ${user.quizResult || "not taken yet"}
 
 ## CONTEXT
@@ -168,8 +174,14 @@ export async function saveChatResponse(userId: string, fullText: string) {
 
 export function streamDailyAdvice(user: {
   name: string | null;
+  age: number | null;
+  incomeSources: string[];
   financialGoal: string | null;
   monthlyIncome: number | null;
+  quizResult: string | null;
+  employmentStatus: string | null;
+  hasEmergencyFund: string | null;
+  debtSituation: string | null;
   languagePref: "ENGLISH" | "TAGLISH";
 }) {
   const lang =
@@ -191,8 +203,14 @@ export function streamDailyAdvice(user: {
 
 Personalize for:
 - Name: ${user.name || "Friend"}
-- Goal: ${user.financialGoal || "financial literacy"}
+- Age: ${user.age || "young adult"}
+- Employment: ${user.employmentStatus?.replace(/_/g, " ").toLowerCase() || "creator"}
+- Income sources: ${user.incomeSources.length > 0 ? user.incomeSources.join(", ") : "content creation"}
 - Monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome.toLocaleString()}` : "varies"}
+- Goal: ${user.financialGoal?.replace(/_/g, " ").toLowerCase() || "financial literacy"}
+- Money personality: ${user.quizResult || "not taken"}
+- Has emergency fund: ${user.hasEmergencyFund?.toLowerCase() || "unknown"}
+- Debt: ${user.debtSituation?.replace(/_/g, " ").toLowerCase() || "unknown"}
 
 Rules:
 - Max 3 sentences
@@ -228,9 +246,12 @@ export async function generateQuizChallenge(
 - Money personality: ${quizResult}
 - Name: ${user.name || "Friend"}
 - Age: ${user.age || "18-35"}
+- Employment: ${user.employmentStatus?.replace(/_/g, " ").toLowerCase() || "creator"}
 - Income sources: ${user.incomeSources.join(", ") || "content creation"}
 - Monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome}` : "varies"}
-- Goal: ${user.financialGoal || "general financial literacy"}
+- Goal: ${user.financialGoal?.replace(/_/g, " ").toLowerCase() || "general financial literacy"}
+- Has emergency fund: ${user.hasEmergencyFund?.toLowerCase() || "unknown"}
+- Debt situation: ${user.debtSituation?.replace(/_/g, " ").toLowerCase() || "none"}
 
 Format as 4 weekly themes with specific daily/weekly tasks. Include peso amounts where applicable. Make it achievable and encouraging. Use emojis sparingly. Format in markdown.`,
       },
@@ -308,8 +329,14 @@ export async function generateDailyAdvice(userId: string): Promise<string> {
 
 Personalize for:
 - Name: ${user.name || "Friend"}
-- Goal: ${user.financialGoal || "financial literacy"}
+- Age: ${user.age || "young adult"}
+- Employment: ${user.employmentStatus?.replace(/_/g, " ").toLowerCase() || "creator"}
+- Income sources: ${user.incomeSources.join(", ") || "content creation"}
 - Monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome.toLocaleString()}` : "varies"}
+- Goal: ${user.financialGoal?.replace(/_/g, " ").toLowerCase() || "financial literacy"}
+- Money personality: ${user.quizResult || "not taken"}
+- Has emergency fund: ${user.hasEmergencyFund?.toLowerCase() || "unknown"}
+- Debt: ${user.debtSituation?.replace(/_/g, " ").toLowerCase() || "unknown"}
 
 Rules:
 - Max 3 sentences
