@@ -5,7 +5,7 @@ const STATIC_ASSETS = [
   "/budget",
   "/tracker",
   "/advice",
-  "/grow",
+  "/insights",
   "/profile",
   "/chat",
 ];
