@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Save, LogOut, Loader2, Brain, Lock } from "lucide-react";
+import { Save, LogOut, Loader2, Brain, Lock, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { QUIZ_RESULTS, type QuizResultType } from "@/lib/quiz-data";
 import {
@@ -33,6 +33,7 @@ interface UserProfile {
   debtSituation: string | null;
   languagePref: "ENGLISH" | "TAGLISH";
   quizResult: QuizResultType | null;
+  isAdmin?: boolean;
 }
 
 interface BadgeData {
@@ -152,6 +153,25 @@ export default function ProfilePage() {
         </h1>
         <p className="text-sm text-muted-foreground">{user?.email}</p>
       </div>
+
+      {/* Admin Dashboard Link */}
+      {user?.isAdmin && (
+        <Link href="/admin">
+          <Card className="border-mg-teal/30 bg-card hover:border-mg-teal/60 transition-colors">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-mg-teal/10">
+                <Shield className="h-5 w-5 text-mg-teal" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Admin Dashboard</p>
+                <p className="text-xs text-muted-foreground">
+                  View stats, manage users
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      )}
 
       {/* Quiz Result */}
       {user?.quizResult && QUIZ_RESULTS[user.quizResult] && (

@@ -24,6 +24,7 @@ export async function GET() {
         quizResult: true,
         quizChallenge: true,
         onboarded: true,
+        isAdmin: true,
         xp: true,
         level: true,
         streakCount: true,
