@@ -88,6 +88,7 @@ model User {
   dailyAdvice     DailyAdvice[]
   expenses        Expense[]
   monthlyBudgets  MonthlyBudget[]
+  feedback        Feedback[]
 }
 
 model MagicLink {
@@ -182,4 +183,18 @@ model MonthlyBudget {
 
   @@unique([userId, month, year])
   @@index([userId, year, month])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      // -1 (negative), 0 (neutral), 1 (positive)
+  reason    String?  // chip value or free text
+  context   String?  // trigger: "budget", "advice", "milestone", "general"
+  page      String?  // page path where feedback was given
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([rating])
 }

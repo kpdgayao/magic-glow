@@ -119,6 +119,8 @@ export default function DashboardPage() {
       .then((res) => res.json())
       .then((posts: BlogPostMeta[]) => setBlogPosts(posts.slice(0, 3)))
       .catch(() => {});
+
+    setShowFeedback(shouldShowFeedback());
   }, []);
 
   const greeting = user?.name ? `Hi ${user.name}!` : "Hi there!";
@@ -277,6 +279,15 @@ export default function DashboardPage() {
             </Link>
           ))}
         </div>
+      )}
+
+      {/* Feedback */}
+      {showFeedback && (
+        <FeedbackCard
+          context="general"
+          page="/dashboard"
+          question="How's your MoneyGlow experience?"
+        />
       )}
     </div>
   );

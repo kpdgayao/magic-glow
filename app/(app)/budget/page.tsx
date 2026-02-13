@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EXPENSE_SUBCATEGORIES, BUDGET_PRESETS, MONTHS } from "@/lib/constants";
+import { FeedbackCard } from "@/components/feedback-card";
 
 interface MonthlyBudget {
   id: string;
@@ -73,6 +74,7 @@ export default function BudgetPage() {
   const [expNote, setExpNote] = useState("");
   const [expDate, setExpDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [addingExpense, setAddingExpense] = useState(false);
+  const [showBudgetFeedback, setShowBudgetFeedback] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -142,6 +144,7 @@ export default function BudgetPage() {
       toast.success("Budget saved! +15 XP");
       setShowSetup(false);
       setIncomeInput("");
+      setShowBudgetFeedback(true);
       fetchData();
     } catch {
       toast.error("Failed to save budget");
@@ -594,6 +597,15 @@ export default function BudgetPage() {
           </Card>
         </>
       ) : null}
+
+      {/* Post-save feedback */}
+      {showBudgetFeedback && (
+        <FeedbackCard
+          context="budget"
+          page="/budget"
+          question="How was setting up your budget?"
+        />
+      )}
     </div>
   );
 }

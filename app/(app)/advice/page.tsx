@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { formatMessage } from "@/lib/format-markdown";
 import Link from "next/link";
 import { Sparkles, Flame, Trophy, Loader2, BookOpen } from "lucide-react";
+import { AdviceFeedback } from "@/components/feedback-card";
 
 interface StatsData {
   xp: number;
@@ -161,6 +162,7 @@ export default function AdvicePage() {
               {streaming && (
                 <span className="inline-block w-1.5 h-4 bg-mg-pink animate-pulse ml-0.5 align-text-bottom" />
               )}
+              {advice && !streaming && <AdviceFeedback />}
             </div>
           </div>
         </CardContent>
