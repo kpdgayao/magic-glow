@@ -110,7 +110,7 @@ export const QUIZ_RESULTS: Record<
     emoji: "📋",
     color: "#6C9CFF",
     desc: "You think ahead and make smart choices. You're already ahead of most people your age. Now level up to automate and optimize.",
-    tip: "Explore compound interest in the Grow tab — see how your savings multiply!",
+    tip: "Explore compound interest in the Insights tab — see how your savings multiply!",
   },
   MASTER: {
     title: "The Money Master",

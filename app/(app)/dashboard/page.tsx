@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { formatMessage } from "@/lib/format-markdown";
 import {
   Calculator,
-  TrendingUp,
+  BarChart3,
   Lightbulb,
   Wallet,
   Sparkles,
@@ -50,10 +50,10 @@ const FEATURES = [
     bg: "bg-mg-pink/10",
   },
   {
-    href: "/grow",
-    icon: TrendingUp,
-    label: "Grow",
-    desc: "Compound Interest",
+    href: "/insights",
+    icon: BarChart3,
+    label: "Insights",
+    desc: "Trends & Tools",
     color: "text-mg-amber",
     bg: "bg-mg-amber/10",
   },
@@ -127,24 +127,24 @@ export default function DashboardPage() {
           <Link href="/advice">
             <Card className="border-mg-amber/20 bg-mg-amber/5 hover:border-mg-amber/40 transition-colors cursor-pointer h-full">
               <CardContent className="p-3 text-center">
-                <p className="text-[10px] text-muted-foreground mb-1">Glow Score</p>
+                <p className="text-[11px] text-muted-foreground mb-1">Glow Score</p>
                 <p className="text-2xl">{stats.glowEmoji}</p>
                 <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-amber">
                   {stats.glowScore}<span className="text-sm font-normal text-muted-foreground">/100</span>
                 </p>
-                <p className="text-[10px] text-muted-foreground">{stats.glowLabel}</p>
+                <p className="text-[11px] text-muted-foreground">{stats.glowLabel}</p>
               </CardContent>
             </Card>
           </Link>
           <Link href="/advice">
             <Card className="border-mg-pink/20 bg-mg-pink/5 hover:border-mg-pink/40 transition-colors cursor-pointer h-full">
               <CardContent className="p-3 text-center">
-                <p className="text-[10px] text-muted-foreground mb-1">Daily Streak</p>
+                <p className="text-[11px] text-muted-foreground mb-1">Daily Streak</p>
                 <Flame className="h-6 w-6 text-mg-pink mx-auto" />
                 <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-pink">
                   {stats.streakCount} <span className="text-sm font-normal text-muted-foreground">{stats.streakCount === 1 ? "day" : "days"}</span>
                 </p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   {stats.levelEmoji} Lv.{stats.level} {stats.levelName}
                 </p>
               </CardContent>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
                   </div>
                 ) : adviceText ? (
                   <div
-                    className="text-sm text-muted-foreground line-clamp-2
+                    className="text-sm text-muted-foreground line-clamp-2 break-words
                       [&_p]:inline [&_strong]:text-muted-foreground [&_em]:text-muted-foreground"
                     dangerouslySetInnerHTML={{
                       __html: formatMessage(adviceText),

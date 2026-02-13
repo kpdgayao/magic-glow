@@ -155,11 +155,11 @@ export default function TrackerPage() {
 
       {/* Month Navigation */}
       <div className="flex items-center justify-between">
-        <button onClick={prevMonth} aria-label="Previous month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
+        <button onClick={prevMonth} aria-label="Previous month" className="p-2.5 rounded-lg hover:bg-card transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <p className="font-semibold">{MONTHS[month - 1]} {year}</p>
-        <button onClick={nextMonth} aria-label="Next month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
+        <button onClick={nextMonth} aria-label="Next month" className="p-2.5 rounded-lg hover:bg-card transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
@@ -346,7 +346,7 @@ export default function TrackerPage() {
                     <p className="text-sm font-medium truncate">
                       {entry.source} — {entry.type}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate">
                       {formatDate(entry.date)}
                       {entry.note && ` · ${entry.note}`}
                     </p>
@@ -360,7 +360,7 @@ export default function TrackerPage() {
                     onClick={() => handleDelete(entry.id)}
                     disabled={deletingId === entry.id}
                     aria-label={`Delete ${entry.source} entry`}
-                    className="text-muted-foreground hover:text-destructive p-2 -mr-1 transition-colors"
+                    className="text-muted-foreground hover:text-destructive p-2.5 -mr-1 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                   >
                     {deletingId === entry.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "MoneyGlow — Your Financial Glow-Up Starts Here",
   description:
     "Financial literacy app for young Filipino digital creators. Budget, save, grow, and track your creator income.",
-  icons: { icon: "/favicon.ico", apple: "/icons/icon-192.png" },
+  icons: { icon: "/icons/icon-192.png", apple: "/icons/icon-192.png" },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -34,6 +34,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
   themeColor: "#0D0D0D",
 };
 

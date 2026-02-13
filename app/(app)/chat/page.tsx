@@ -211,7 +211,7 @@ function ChatContent() {
             >
               <div
                 className={cn(
-                  "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                  "max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed break-words",
                   msg.role === "USER"
                     ? "bg-mg-pink text-white rounded-br-md"
                     : "bg-card border border-border rounded-bl-md"
@@ -247,7 +247,7 @@ function ChatContent() {
       </div>
 
       {/* Input */}
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="flex gap-2">
           <input
             type="text"

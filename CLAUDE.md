@@ -74,7 +74,7 @@ moneyglow/
 │   │   ├── onboarding/page.tsx       # First-time user profile setup
 │   │   ├── advice/page.tsx           # Daily AI advice + streaks + XP/level display
 │   │   ├── budget/page.tsx           # Monthly budget + expense tracking
-│   │   ├── grow/page.tsx             # Compound interest calculator
+│   │   ├── insights/page.tsx          # Insights hub: trends, compound interest, tax estimator
 │   │   ├── quiz/page.tsx             # Money personality quiz (5 questions)
 │   │   ├── quiz/result/page.tsx      # Quiz result + AI 30-day challenge
 │   │   ├── tracker/page.tsx          # Creator income tracker (monthly view)
@@ -90,6 +90,7 @@ moneyglow/
 │       ├── user/
 │       │   ├── profile/route.ts           # GET/PUT — user profile
 │       │   ├── stats/route.ts             # GET — gamification stats (XP, level, glow score, streak)
+│       │   ├── badges/route.ts            # GET — achievement badges (earned/unearned)
 │       │   └── onboarding/route.ts        # POST — complete onboarding
 │       ├── advice/route.ts                # GET — daily AI advice (streaming SSE, ?peek=true for cached)
 │       ├── chat/route.ts                  # POST — AI chat (streaming SSE)
@@ -98,7 +99,9 @@ moneyglow/
 │       ├── income/route.ts                # GET(?month&year)/POST/DELETE — income entries (+XP award)
 │       ├── expenses/route.ts              # GET/POST/DELETE — expense tracking (+XP award)
 │       ├── monthly-budget/route.ts        # GET/POST — monthly budgets with spent + tracked income
-│       └── budget/route.ts                # GET/POST — budget snapshots (+XP award)
+│       ├── budget/route.ts                # GET/POST — budget snapshots (+XP award)
+│       └── insights/
+│           └── monthly-summary/route.ts   # GET — last 6 months aggregated income + expenses
 │
 ├── lib/
 │   ├── auth.ts                       # JWT sign/verify, getSession, requireAuth
@@ -107,6 +110,7 @@ moneyglow/
 │   ├── format-markdown.ts            # Markdown→HTML converter for AI responses
 │   ├── constants.ts                  # Shared constants (platforms, income types, categories)
 │   ├── gamification.ts               # XP awards, levels, glow score, streaks
+│   ├── badges.ts                     # Achievement badge definitions + computeBadges()
 │   ├── mail.ts                       # Mailjet send magic link
 │   ├── validations.ts                # Zod schemas for all inputs
 │   └── utils.ts                      # cn() helper, formatCurrency, etc.
@@ -673,7 +677,7 @@ export async function POST(req: NextRequest) {
 - Both loaded in `app/layout.tsx` via `next/font/google`
 
 ### Bottom Navigation
-5 tabs: Home (✦), Budget (₱), Grow (📈), Advice (💡), Track (💰)
+5 tabs: Home (✦), Budget (₱), Insights (📊), Advice (💡), Track (💰)
 Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 
 ### Mobile-First
@@ -709,7 +713,7 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - XP progress bar to next level
 - 4 feature cards in 2×2 grid:
   - Budget (₱) — 50/30/20 Calculator
-  - Grow (📈) — Compound Interest
+  - Insights (📊) — Trends & Tools
   - Advice (💡) — Daily Money Tips
   - Track (💰) — Income Tracker
 - Daily AI advice teaser card (clickable, links to /advice)
@@ -734,13 +738,12 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Creator tip card at bottom
 - Awards 5 XP per expense logged, 15 XP for saving a budget
 
-### Grow Page (`/grow`)
-- 3 sliders: Monthly savings (₱100–₱50,000), Years (1–30), Interest rate (1%–15%)
-- Big result number: "After X years, you'll have ₱X"
-- Deposited vs Interest earned breakdown
-- Bar chart showing growth over time (deposited in blue, interest in amber)
-- Reference rates: "Maya Savings ~3%, Tonik ~4.5%, Pag-IBIG MP2 ~6-7%"
-- Tip card about starting early
+### Insights Page (`/insights`)
+- **Income vs Expenses chart**: last 6 months side-by-side bars (teal=income, pink=expenses), current month net summary
+- **Compound Interest Calculator**: 3 sliders (monthly savings ₱100–₱50K, years 1–30, rate 1%–15%), result card, growth chart, PH reference rates, tip card
+- **Tax Estimator**: annual gross income slider + presets, compares 8% flat vs graduated (TRAIN Law), shows which saves more, effective rate, monthly breakdown, CPA disclaimer
+- API: `/api/insights/monthly-summary` — GET last 6 months aggregated income + expenses
+- Empty state when no income/expense data tracked yet
 
 ### Quiz Page (`/quiz`)
 - 5 multiple choice questions (see quiz data below)
@@ -789,6 +792,7 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Language preference toggle (English / Taglish)
 - Quiz result display (if taken) with "Retake Quiz" button
 - "Take Money Personality Quiz" button (if quiz not taken)
+- **Achievement badges grid** (5x2): 10 badges, earned=emoji+colored bg, unearned=lock+grey
 - Logout button
 
 ### Advice Page (`/advice`)
@@ -868,7 +872,7 @@ const QUIZ_RESULTS = {
     title: "📋 The Planner",
     color: "#6C9CFF",
     desc: "You think ahead and make smart choices. You're already ahead of most people your age. Now level up to automate and optimize.",
-    tip: "Explore compound interest in the Grow tab — see how your savings multiply!",
+    tip: "Explore compound interest in the Insights tab — see how your savings multiply!",
   },
   MASTER: {
     title: "👑 The Money Master",
@@ -909,6 +913,25 @@ Composite score based on:
 - XP activity (0-25 pts)
 
 Labels: Needs TLC 🕯️ (<40), Flickering 🔥 (40-59), Glowing ✨ (60-79), On Fire 💎 (80+)
+
+### Achievement Badges
+10 badges displayed on profile page, computed from user data:
+
+| Badge | Condition |
+|-------|-----------|
+| First Peso | 1+ income entry |
+| Hustler | 10+ income entries |
+| Money Machine | 50+ income entries |
+| Budget Boss | 1+ monthly budget |
+| Self-Aware | Quiz completed |
+| Week Warrior | 7+ day longest streak |
+| Monthly Master | 30+ day longest streak |
+| Rising Star | Level 2+ |
+| Money Master | Level 4 (max) |
+| Tracker | 1+ expense logged |
+
+API: `GET /api/user/badges` → `{ badges, earnedCount, totalCount }`
+Logic: `lib/badges.ts` — `computeBadges(userId)` with 4 parallel Prisma queries
 
 ### Daily Advice
 - AI-generated, personalized to user profile

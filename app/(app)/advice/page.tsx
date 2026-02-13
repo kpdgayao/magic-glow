@@ -171,7 +171,7 @@ export default function AdvicePage() {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium">{stats.longestStreak}</p>
-                <p className="text-[10px] text-muted-foreground">Best streak</p>
+                <p className="text-[11px] text-muted-foreground">Best streak</p>
               </div>
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">

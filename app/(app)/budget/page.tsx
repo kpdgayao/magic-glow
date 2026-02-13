@@ -232,11 +232,11 @@ export default function BudgetPage() {
 
       {/* Month Navigation */}
       <div className="flex items-center justify-between">
-        <button onClick={prevMonth} aria-label="Previous month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
+        <button onClick={prevMonth} aria-label="Previous month" className="p-2.5 rounded-lg hover:bg-card transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <p className="font-semibold">{MONTHS[month - 1]} {year}</p>
-        <button onClick={nextMonth} aria-label="Next month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
+        <button onClick={nextMonth} aria-label="Next month" className="p-2.5 rounded-lg hover:bg-card transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
@@ -532,7 +532,7 @@ export default function BudgetPage() {
                       <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${config.dotColor}`} />
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{exp.subcategory}</p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground truncate">
                           {new Date(exp.date).toLocaleDateString("en-PH", {
                             month: "short",
                             day: "numeric",
@@ -548,7 +548,7 @@ export default function BudgetPage() {
                       <button
                         onClick={() => handleDeleteExpense(exp.id)}
                         aria-label={`Delete ${exp.subcategory} expense`}
-                        className="text-muted-foreground hover:text-red-400 transition-colors p-2 -mr-1"
+                        className="text-muted-foreground hover:text-red-400 transition-colors p-2.5 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

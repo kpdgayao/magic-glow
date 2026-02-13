@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Save, LogOut, Loader2, Brain } from "lucide-react";
+import { Save, LogOut, Loader2, Brain, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { QUIZ_RESULTS, type QuizResultType } from "@/lib/quiz-data";
 import { INCOME_SOURCES, FINANCIAL_GOALS } from "@/lib/constants";
@@ -26,9 +26,20 @@ interface UserProfile {
   quizResult: QuizResultType | null;
 }
 
+interface BadgeData {
+  id: string;
+  emoji: string;
+  name: string;
+  description: string;
+  color: string;
+  earned: boolean;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [badges, setBadges] = useState<BadgeData[]>([]);
+  const [badgeCount, setBadgeCount] = useState({ earned: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -56,6 +67,14 @@ export default function ProfilePage() {
       })
       .catch(() => toast.error("Failed to load profile"))
       .finally(() => setLoading(false));
+
+    fetch("/api/user/badges")
+      .then((res) => res.json())
+      .then((data) => {
+        setBadges(data.badges || []);
+        setBadgeCount({ earned: data.earnedCount || 0, total: data.totalCount || 0 });
+      })
+      .catch(() => {});
   }, []);
 
   function toggleSource(source: string) {
@@ -155,6 +174,53 @@ export default function ProfilePage() {
             Take Money Personality Quiz
           </Button>
         </Link>
+      )}
+
+      {/* Achievement Badges */}
+      {badges.length > 0 && (
+        <Card className="border-border bg-card">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Achievements</p>
+              <span className="text-xs text-muted-foreground">
+                {badgeCount.earned}/{badgeCount.total}
+              </span>
+            </div>
+            <div className="grid grid-cols-5 gap-3">
+              {badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className="flex flex-col items-center gap-1 text-center"
+                  title={`${badge.name}: ${badge.description}`}
+                >
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-lg"
+                    style={
+                      badge.earned
+                        ? { backgroundColor: badge.color + "20" }
+                        : { backgroundColor: "rgba(255,255,255,0.05)" }
+                    }
+                  >
+                    {badge.earned ? (
+                      badge.emoji
+                    ) : (
+                      <Lock className="h-4 w-4 text-muted-foreground/40" />
+                    )}
+                  </div>
+                  <span
+                    className={`text-[10px] leading-tight ${
+                      badge.earned
+                        ? "text-foreground"
+                        : "text-muted-foreground/40"
+                    }`}
+                  >
+                    {badge.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Edit Form */}
