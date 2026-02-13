@@ -60,7 +60,8 @@
 moneyglow/
 ├── app/
 │   ├── layout.tsx                    # Root layout (fonts, providers)
-│   ├── page.tsx                      # Landing page (redirect to login or dashboard)
+│   ├── page.tsx                      # Public landing page (session-aware)
+│   ├── opengraph-image.tsx           # Dynamic OG image for root
 │   ├── globals.css                   # Tailwind + custom styles
 │   │
 │   ├── (auth)/
@@ -81,6 +82,21 @@ moneyglow/
 │   │   ├── chat/page.tsx             # AI chat interface
 │   │   └── profile/page.tsx          # Edit profile + quiz access + language preference
 │   │
+│   ├── (blog)/
+│   │   ├── layout.tsx                # Public blog layout (no auth, header + footer)
+│   │   ├── blog/page.tsx             # Blog listing (static)
+│   │   ├── blog/[slug]/page.tsx      # Blog post (SSG + generateMetadata)
+│   │   └── share/quiz/[type]/        # Public quiz share pages (SSG, OG images)
+│   │
+│   ├── (admin)/
+│   │   ├── layout.tsx                # Admin layout (sidebar, admin guard)
+│   │   ├── admin-sidebar.tsx         # Admin nav sidebar
+│   │   └── admin/
+│   │       ├── page.tsx              # Admin stats dashboard
+│   │       ├── users/page.tsx        # User list (search + paginate)
+│   │       ├── users/[id]/page.tsx   # User detail view
+│   │       └── feedback/page.tsx     # Feedback entries + stats
+│   │
 │   └── api/
 │       ├── auth/
 │       │   ├── send-magic-link/route.ts   # POST — generate token, send email
@@ -91,7 +107,7 @@ moneyglow/
 │       │   ├── profile/route.ts           # GET/PUT — user profile
 │       │   ├── stats/route.ts             # GET — gamification stats (XP, level, glow score, streak)
 │       │   ├── badges/route.ts            # GET — achievement badges (earned/unearned)
-│       │   └── onboarding/route.ts        # POST — complete onboarding
+│       │   └── onboarding/route.ts        # POST — complete onboarding + welcome email
 │       ├── advice/route.ts                # GET — daily AI advice (streaming SSE, ?peek=true for cached)
 │       ├── chat/route.ts                  # POST — AI chat (streaming SSE)
 │       ├── quiz/
@@ -100,6 +116,13 @@ moneyglow/
 │       ├── expenses/route.ts              # GET/POST/DELETE — expense tracking (+XP award)
 │       ├── monthly-budget/route.ts        # GET/POST — monthly budgets with spent + tracked income
 │       ├── budget/route.ts                # GET/POST — budget snapshots (+XP award)
+│       ├── feedback/route.ts              # POST — save user feedback
+│       ├── blog/posts/route.ts            # GET — blog post metadata (public)
+│       ├── admin/
+│       │   ├── stats/route.ts             # GET — admin dashboard stats
+│       │   ├── users/route.ts             # GET — user list (search + paginate)
+│       │   ├── users/[id]/route.ts        # GET — user detail
+│       │   └── feedback/route.ts          # GET — feedback entries + stats
 │       └── insights/
 │           └── monthly-summary/route.ts   # GET — last 6 months aggregated income + expenses
 │
@@ -111,7 +134,9 @@ moneyglow/
 │   ├── constants.ts                  # Shared constants (platforms, income types, categories)
 │   ├── gamification.ts               # XP awards, levels, glow score, streaks
 │   ├── badges.ts                     # Achievement badge definitions + computeBadges()
-│   ├── mail.ts                       # Mailjet send magic link
+│   ├── mail.ts                       # Mailjet magic link + welcome email
+│   ├── blog.ts                       # Blog post helpers (gray-matter + marked)
+│   ├── admin.ts                      # requireAdmin() guard
 │   ├── validations.ts                # Zod schemas for all inputs
 │   └── utils.ts                      # cn() helper, formatCurrency, etc.
 │
@@ -125,7 +150,12 @@ moneyglow/
 │   ├── income-entry-card.tsx         # Single income entry display
 │   ├── quiz-option.tsx               # Quiz answer option button
 │   ├── progress-bar.tsx              # Reusable progress bar
-│   └── compound-chart.tsx            # Bar chart for compound interest
+│   ├── compound-chart.tsx            # Bar chart for compound interest
+│   ├── share-button.tsx              # Web Share API + clipboard fallback
+│   └── feedback-card.tsx             # FeedbackCard (emoji) + AdviceFeedback (thumbs)
+│
+├── content/
+│   └── blog/                         # 10 markdown blog posts (SEO)
 │
 ├── prisma/
 │   ├── schema.prisma                 # Database schema
@@ -221,6 +251,7 @@ model User {
   employmentStatus  EmploymentStatus?
   hasEmergencyFund  EmergencyFundStatus?
   debtSituation     DebtSituation?
+  isAdmin           Boolean       @default(false)
   onboarded         Boolean             @default(false)
   streakCount     Int            @default(0)
   lastCheckIn     DateTime?
@@ -237,6 +268,7 @@ model User {
   dailyAdvice     DailyAdvice[]
   expenses        Expense[]
   monthlyBudgets  MonthlyBudget[]
+  feedback        Feedback[]
 }
 
 model MagicLink {
@@ -332,6 +364,20 @@ model MonthlyBudget {
   @@unique([userId, month, year])
   @@index([userId, year, month])
 }
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      // -1 (negative), 0 (neutral), 1 (positive)
+  reason    String?  // chip value or free text
+  context   String?  // trigger: "budget", "advice", "milestone", "general"
+  page      String?  // page path where feedback was given
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([rating])
+}
 ```
 
 ---
@@ -407,7 +453,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifySession } from './lib/auth';
 
-const PUBLIC_PATHS = ['/login', '/verify', '/api/auth'];
+const PUBLIC_PATHS = ['/login', '/verify', '/api/auth', '/blog', '/api/blog', '/share'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -1021,6 +1067,50 @@ Add CNAME record:
 - Name: `@` (or `moneyglow.app`)
 - Target: `<your-railway-app>.up.railway.app`
 - Proxy: OFF (DNS only — Railway handles SSL)
+
+---
+
+## 📝 Public Blog (SEO)
+
+- 10 markdown posts in `content/blog/` with YAML frontmatter (title, date, excerpt, tags, coverEmoji)
+- `lib/blog.ts`: `getPostSlugs()`, `getPostBySlug()`, `getAllPosts()`, `renderMarkdown()` using `gray-matter` + `marked`
+- Route group `(blog)`: public layout, no auth required
+- `/blog` — listing page (static), `/blog/[slug]` — SSG with `generateStaticParams` + `generateMetadata`
+- Blog integrated into logged-in UI: dashboard "Learn" section + advice "Recommended Reading"
+- `/api/blog/posts` — returns blog metadata (public endpoint)
+- Public landing page (`/`): hero, feature cards, latest blog posts, CTA, session-aware nav
+
+## 📧 Welcome Email
+
+- `sendWelcomeEmail()` in `lib/mail.ts` — fired after onboarding (non-blocking, fire-and-forget)
+- `pickBlogSuggestions(profile)` scores blog posts against user's financial goal, emergency fund status, debt, employment
+- HTML email with personalized greeting, 3 recommended blog post cards, quick start guide, dashboard CTA
+
+## 🔗 Social Sharing
+
+- `components/share-button.tsx`: Web Share API (native OS share sheet) + clipboard fallback, UTM parameters
+- OG meta tags: root layout has full Open Graph + Twitter Card, `metadataBase`, dynamic `opengraph-image.tsx`
+- Public quiz share pages: `/share/quiz/[type]` (YOLO/CHILL/PLAN/MASTER) — SSG, per-type dynamic OG images
+- Share button placements: quiz result (prominent button), blog post header (icon), profile (Invite Friends card)
+
+## 💬 Feedback Collection
+
+- `Feedback` model: `rating` (-1/0/1), `reason`, `context`, `page`
+- `POST /api/feedback` — save feedback, `GET /api/admin/feedback` — paginated list + rating stats
+- `FeedbackCard` component: 3-emoji scale, reason chips + optional text for negative/neutral
+- `AdviceFeedback` component: thumbs up/down for daily advice
+- Cooldown: max 1 prompt per 7 days, stops after 3 dismissals for 30 days (localStorage)
+- Placements: dashboard (general, cooldown-gated), budget (after save), advice (thumbs)
+- Admin: `/admin/feedback` page with stats cards + paginated list
+
+## 🔒 Admin Dashboard
+
+- `isAdmin Boolean @default(false)` on User model
+- `requireAdmin()` in `lib/admin.ts` (separate from auth.ts for edge compatibility)
+- Desktop layout (sidebar + main), NOT mobile-first — under `(admin)/` route group
+- APIs: `/api/admin/stats`, `/api/admin/users`, `/api/admin/users/[id]`, `/api/admin/feedback`
+- Pages: `/admin` (stats), `/admin/users` (search+paginate), `/admin/users/[id]` (detail), `/admin/feedback`
+- Profile page shows admin dashboard link conditionally
 
 ---
 
