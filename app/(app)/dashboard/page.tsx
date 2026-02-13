@@ -16,6 +16,10 @@ import {
   BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  FeedbackCard,
+  shouldShowFeedback,
+} from "@/components/feedback-card";
 
 interface UserData {
   name: string | null;
@@ -91,6 +95,7 @@ export default function DashboardPage() {
   const [adviceText, setAdviceText] = useState<string | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(true);
   const [blogPosts, setBlogPosts] = useState<BlogPostMeta[]>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -241,7 +246,7 @@ export default function DashboardPage() {
 
       {/* Blog Posts */}
       {blogPosts.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-mg-blue" />
