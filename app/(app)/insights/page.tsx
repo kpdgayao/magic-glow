@@ -216,7 +216,7 @@ export default function InsightsPage() {
                           }}
                         />
                       </div>
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {m.label}
                       </span>
                     </div>
@@ -371,7 +371,7 @@ export default function InsightsPage() {
                   {(d.year === 1 ||
                     d.year === years ||
                     d.year % Math.max(1, Math.floor(years / 5)) === 0) && (
-                    <span className="text-[11px] text-muted-foreground mt-1">
+                    <span className="text-xs text-muted-foreground mt-1">
                       {d.year}y
                     </span>
                   )}
@@ -483,7 +483,7 @@ export default function InsightsPage() {
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium">8% Flat</p>
                 {recommended === "flat8" && (
-                  <span className="text-[11px] text-mg-teal font-semibold">
+                  <span className="text-xs text-mg-teal font-semibold">
                     BETTER
                   </span>
                 )}
@@ -493,13 +493,13 @@ export default function InsightsPage() {
                   <p className="font-[family-name:var(--font-playfair)] text-lg font-bold text-mg-teal">
                     {formatCurrency(flat8Tax)}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {((flat8Tax / annualGross) * 100).toFixed(1)}% effective
                   </p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {formatCurrency(flat8Tax / 12)}/mo
                   </p>
-                  <p className="text-[11px] text-muted-foreground/60 mt-1">
+                  <p className="text-xs text-muted-foreground/60 mt-1">
                     Replaces income tax + percentage tax
                   </p>
                 </>
@@ -523,7 +523,7 @@ export default function InsightsPage() {
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium">Graduated + OSD</p>
                 {recommended === "graduated" && (
-                  <span className="text-[11px] text-mg-teal font-semibold">
+                  <span className="text-xs text-mg-teal font-semibold">
                     BETTER
                   </span>
                 )}
@@ -531,13 +531,13 @@ export default function InsightsPage() {
               <p className="font-[family-name:var(--font-playfair)] text-lg font-bold text-mg-blue">
                 {formatCurrency(graduated.total)}
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {((graduated.total / annualGross) * 100).toFixed(1)}% effective
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {formatCurrency(graduated.total / 12)}/mo
               </p>
-              <p className="text-[11px] text-muted-foreground/60 mt-1">
+              <p className="text-xs text-muted-foreground/60 mt-1">
                 Income tax {formatCurrency(graduated.incomeTax)} + 3% tax {formatCurrency(graduated.percentageTax)}
               </p>
             </CardContent>
@@ -567,7 +567,7 @@ export default function InsightsPage() {
         <Card className="border-border bg-card">
           <CardContent className="p-4 space-y-2">
             <p className="text-xs font-medium">How this works</p>
-            <div className="space-y-1.5 text-[11px] text-muted-foreground">
+            <div className="space-y-1.5 text-xs text-muted-foreground">
               <div className="flex items-start justify-between gap-2">
                 <span>Gross income</span>
                 <span className="font-medium text-foreground shrink-0">{formatCurrency(annualGross)}</span>

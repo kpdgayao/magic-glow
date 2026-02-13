@@ -17,15 +17,43 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "MoneyGlow — Your Financial Glow-Up Starts Here",
+  metadataBase: new URL("https://moneyglow.app"),
+  title: {
+    default: "MoneyGlow — Your Financial Glow-Up Starts Here",
+    template: "%s | MoneyGlow",
+  },
   description:
-    "Financial literacy app for young Filipino digital creators. Budget, save, grow, and track your creator income.",
+    "Free financial literacy app for young Filipino digital creators. Budget, track income, get AI money advice.",
   icons: { icon: "/icons/icon-192.png", apple: "/icons/icon-192.png" },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "MoneyGlow",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_PH",
+    url: "https://moneyglow.app",
+    siteName: "MoneyGlow",
+    title: "MoneyGlow — Your Financial Glow-Up Starts Here",
+    description:
+      "Free financial literacy app for young Filipino digital creators. Budget, track income, get AI money advice.",
+    images: [
+      {
+        url: "/og-default.png",
+        width: 1200,
+        height: 630,
+        alt: "MoneyGlow — Financial Literacy for Filipino Creators",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MoneyGlow — Your Financial Glow-Up Starts Here",
+    description:
+      "Free financial literacy app for young Filipino digital creators. Budget, track income, get AI money advice.",
+    images: ["/og-default.png"],
   },
 };
 
@@ -48,6 +76,12 @@ export default function RootLayout({
       <body
         className={`${dmSans.variable} ${playfair.variable} antialiased`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-mg-pink focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-medium"
+        >
+          Skip to content
+        </a>
         {children}
         <Toaster richColors position="top-center" />
         <PWARegister />

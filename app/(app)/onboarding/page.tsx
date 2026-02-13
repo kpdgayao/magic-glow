@@ -121,8 +121,9 @@ export default function OnboardingPage() {
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Name</Label>
+                <Label htmlFor="onboarding-name">Name</Label>
                 <Input
+                  id="onboarding-name"
                   placeholder="Your first name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -131,8 +132,9 @@ export default function OnboardingPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Age</Label>
+                <Label htmlFor="onboarding-age">Age</Label>
                 <Input
+                  id="onboarding-age"
                   type="number"
                   placeholder="Your age"
                   value={age}

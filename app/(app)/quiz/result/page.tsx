@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { QUIZ_RESULTS, type QuizResultType } from "@/lib/quiz-data";
 import { Loader2, Sparkles, RotateCcw } from "lucide-react";
+import { ShareButton } from "@/components/share-button";
 
 function QuizResultContent() {
   const searchParams = useSearchParams();
@@ -121,6 +122,18 @@ function QuizResultContent() {
           )}
           Get Your 30-Day Challenge
         </Button>
+      )}
+
+      {/* Share Result */}
+      {result && (
+        <ShareButton
+          title={`I'm ${data.title}! — MoneyGlow Quiz`}
+          text={`I'm ${data.title}! ${data.emoji} What's your money personality? Take the quiz`}
+          url={`/share/quiz/${result}`}
+          utmSource="quiz_result"
+          variant="button"
+          className="w-full border-mg-pink text-mg-pink hover:bg-mg-pink/10"
+        />
       )}
 
       {/* Actions */}

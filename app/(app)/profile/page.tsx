@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Save, LogOut, Loader2, Brain, Lock, Shield } from "lucide-react";
+import { Save, LogOut, Loader2, Brain, Lock, Shield, UserPlus } from "lucide-react";
+import { ShareButton } from "@/components/share-button";
 import { toast } from "sonner";
 import { QUIZ_RESULTS, type QuizResultType } from "@/lib/quiz-data";
 import {
@@ -246,7 +247,7 @@ export default function ProfilePage() {
                     )}
                   </div>
                   <span
-                    className={`text-[10px] leading-tight ${
+                    className={`text-xs leading-tight ${
                       badge.earned
                         ? "text-foreground"
                         : "text-muted-foreground/40"
@@ -265,8 +266,9 @@ export default function ProfilePage() {
       <Card className="border-border bg-card">
         <CardContent className="p-4 space-y-4">
           <div className="space-y-2">
-            <Label>Name</Label>
+            <Label htmlFor="profile-name">Name</Label>
             <Input
+              id="profile-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="bg-background border-border"
@@ -274,8 +276,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Age</Label>
+            <Label htmlFor="profile-age">Age</Label>
             <Input
+              id="profile-age"
               type="number"
               value={age}
               onChange={(e) => setAge(e.target.value)}
@@ -304,8 +307,9 @@ export default function ProfilePage() {
           </div>
 
           <div className="space-y-2">
-            <Label>Monthly Income (₱)</Label>
+            <Label htmlFor="profile-income">Monthly Income (₱)</Label>
             <Input
+              id="profile-income"
               type="number"
               value={monthlyIncome}
               onChange={(e) => setMonthlyIncome(e.target.value)}
@@ -445,6 +449,28 @@ export default function ProfilePage() {
             )}
             Save Changes
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Invite Friends */}
+      <Card className="border-mg-amber/30 bg-card">
+        <CardContent className="p-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-mg-amber/10">
+            <UserPlus className="h-5 w-5 text-mg-amber" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold">Invite Friends</p>
+            <p className="text-xs text-muted-foreground">
+              Share MoneyGlow with your creator friends
+            </p>
+          </div>
+          <ShareButton
+            title="MoneyGlow — Your Financial Glow-Up Starts Here"
+            text="I've been leveling up my finances with MoneyGlow! Free financial literacy app for Filipino creators"
+            url="/"
+            utmSource="profile_invite"
+            variant="icon"
+          />
         </CardContent>
       </Card>
 

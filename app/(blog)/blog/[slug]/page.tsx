@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPostBySlug, getPostSlugs, renderMarkdown } from "@/lib/blog";
+import { ShareButton } from "@/components/share-button";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     const post = getPostBySlug(slug);
+    const url = `https://moneyglow.app/blog/${slug}`;
     return {
       title: `${post.title} — MoneyGlow`,
       description: post.excerpt,
@@ -25,6 +27,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         type: "article",
         publishedTime: post.date,
         tags: post.tags,
+        url,
+        siteName: "MoneyGlow",
+        images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: post.title,
+        description: post.excerpt,
+        images: ["/og-default.png"],
       },
     };
   } catch {
@@ -69,7 +80,16 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Post header */}
       <header className="mb-8">
-        <span className="text-5xl block mb-4">{post.coverEmoji}</span>
+        <div className="flex items-start justify-between gap-4">
+          <span className="text-5xl block mb-4">{post.coverEmoji}</span>
+          <ShareButton
+            title={post.title}
+            text={`${post.title} — MoneyGlow Blog`}
+            url={`/blog/${slug}`}
+            utmSource="blog_share"
+            variant="icon"
+          />
+        </div>
         <h1 className="text-3xl font-bold font-serif text-foreground leading-tight">
           {post.title}
         </h1>

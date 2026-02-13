@@ -67,7 +67,7 @@
   --secondary: #2A2A2A;
   --secondary-foreground: #F5F5F5;
   --muted: #2A2A2A;
-  --muted-foreground: #999999;
+  --muted-foreground: #AAAAAA;
   --accent: #FF6B9D;
   --accent-foreground: #FFFFFF;
   --destructive: #ef4444;
@@ -229,6 +229,18 @@ a:focus-visible {
   max-width: 100%;
   border-radius: 0.5rem;
   margin: 1.5rem 0;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Mobile viewport fix */

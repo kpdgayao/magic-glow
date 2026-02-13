@@ -252,12 +252,13 @@ export default function BudgetPage() {
               </p>
             </div>
             <div className="space-y-2">
-              <Label>Monthly Income</Label>
+              <Label htmlFor="budget-income">Monthly Income</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                   &#8369;
                 </span>
                 <Input
+                  id="budget-income"
                   type="number"
                   placeholder="0"
                   value={incomeInput}
@@ -454,12 +455,13 @@ export default function BudgetPage() {
 
                 {/* Amount */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Amount</Label>
+                  <Label htmlFor="expense-amount" className="text-xs">Amount</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">
                       &#8369;
                     </span>
                     <Input
+                      id="expense-amount"
                       type="number"
                       placeholder="0"
                       value={expAmount}
@@ -471,8 +473,9 @@ export default function BudgetPage() {
 
                 {/* Date */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Date</Label>
+                  <Label htmlFor="expense-date" className="text-xs">Date</Label>
                   <Input
+                    id="expense-date"
                     type="date"
                     value={expDate}
                     onChange={(e) => setExpDate(e.target.value)}
@@ -482,8 +485,9 @@ export default function BudgetPage() {
 
                 {/* Note */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Note (optional)</Label>
+                  <Label htmlFor="expense-note" className="text-xs">Note (optional)</Label>
                   <Input
+                    id="expense-note"
                     placeholder="e.g. Jollibee with barkada"
                     value={expNote}
                     onChange={(e) => setExpNote(e.target.value)}
@@ -532,7 +536,7 @@ export default function BudgetPage() {
                       <div className={`h-2.5 w-2.5 rounded-full shrink-0 ${config.dotColor}`} />
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{exp.subcategory}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           {new Date(exp.date).toLocaleDateString("en-PH", {
                             month: "short",
                             day: "numeric",

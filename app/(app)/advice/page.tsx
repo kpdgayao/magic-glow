@@ -139,7 +139,7 @@ export default function AdvicePage() {
         <CardContent className="p-5">
           <div className="flex items-start gap-3">
             <Sparkles className="h-6 w-6 text-mg-pink mt-0.5 shrink-0" />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1" aria-live="polite" aria-relevant="additions text">
               <p className="text-sm font-medium text-mg-pink mb-2">
                 Today&apos;s Money Tip
               </p>
@@ -184,10 +184,10 @@ export default function AdvicePage() {
               </div>
               <div className="text-right">
                 <p className="text-sm font-medium">{stats.longestStreak}</p>
-                <p className="text-[11px] text-muted-foreground">Best streak</p>
+                <p className="text-xs text-muted-foreground">Best streak</p>
               </div>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Visit this page every day to build your streak. Consecutive days grow your Glow Score!
             </p>
           </CardContent>
@@ -208,7 +208,7 @@ export default function AdvicePage() {
             <p className="text-xs text-muted-foreground mb-2">
               Your Glow Score measures how actively you&apos;re managing your money. The higher your score, the brighter your financial glow!
             </p>
-            <div className="space-y-1.5 text-[11px] text-muted-foreground">
+            <div className="space-y-1.5 text-xs text-muted-foreground">
               <p className="font-medium text-foreground text-xs">How to boost your score:</p>
               <div className="flex items-center justify-between">
                 <span>Log income &amp; expenses</span>
@@ -227,7 +227,7 @@ export default function AdvicePage() {
                 <span>up to 25 pts</span>
               </div>
             </div>
-            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-border">
+            <div className="flex items-center justify-between text-xs pt-1 border-t border-border">
               <span>🕯️ Needs TLC <span className="text-muted-foreground">0–39</span></span>
               <span>🔥 Flickering <span className="text-muted-foreground">40–59</span></span>
               <span>✨ Glowing <span className="text-muted-foreground">60–79</span></span>

@@ -268,12 +268,13 @@ export default function TrackerPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Amount</Label>
+              <Label htmlFor="income-amount">Amount</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                   ₱
                 </span>
                 <Input
+                  id="income-amount"
                   type="number"
                   placeholder="0"
                   value={amount}
@@ -284,8 +285,9 @@ export default function TrackerPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Date</Label>
+              <Label htmlFor="income-date">Date</Label>
               <Input
+                id="income-date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -294,8 +296,9 @@ export default function TrackerPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Note (optional)</Label>
+              <Label htmlFor="income-note">Note (optional)</Label>
               <Input
+                id="income-note"
                 placeholder="e.g., Collab with @brand"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}

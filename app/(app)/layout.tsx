@@ -9,7 +9,9 @@ export default function AppLayout({
 }) {
   return (
     <div className="mx-auto min-h-dvh max-w-[480px] bg-background pb-[calc(5rem+env(safe-area-inset-bottom))]">
-      {children}
+      <main id="main-content">
+        {children}
+      </main>
 
       {/* Floating chat button */}
       <Link

@@ -172,7 +172,7 @@ function ChatContent() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" aria-live="polite" aria-relevant="additions">
         {loadingHistory ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-mg-pink" />
@@ -255,12 +255,14 @@ function ChatContent() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask MoneyGlow AI..."
+            aria-label="Chat message"
             className="flex-1 rounded-xl border border-border bg-card px-4 py-3 text-sm outline-none focus:border-mg-pink transition-colors"
             disabled={loading}
           />
           <Button
             onClick={() => handleSend()}
             disabled={loading || !input.trim()}
+            aria-label="Send message"
             className="bg-mg-pink hover:bg-mg-pink/90 text-white rounded-xl h-auto px-4"
           >
             <Send className="h-4 w-4" />

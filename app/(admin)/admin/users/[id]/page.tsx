@@ -253,7 +253,7 @@ export default function AdminUserDetailPage() {
                   <Lock className="h-6 w-6 text-muted-foreground/40" />
                 )}
                 <span
-                  className="text-[11px] font-medium leading-tight"
+                  className="text-xs font-medium leading-tight"
                   style={{ color: badge.earned ? badge.color : undefined }}
                 >
                   {badge.name}
