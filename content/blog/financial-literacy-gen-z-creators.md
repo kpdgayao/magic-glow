@@ -18,9 +18,9 @@ Financial literacy is the difference between earning money and building wealth. 
 
 The numbers are impressive:
 
-- Over 80 million Filipinos are on social media
-- TikTok has 50+ million Filipino users
-- The Philippine influencer market is growing 20%+ yearly
+- Over 95 million Filipinos are on social media
+- TikTok has 64+ million Filipino users
+- The Philippine influencer market is growing 15%+ yearly
 - Creators as young as 16 are earning five figures monthly
 
 But here's the truth most people don't talk about: **most creators earn inconsistently, save nothing, and have no financial safety net.**
@@ -84,15 +84,15 @@ Here's why your age is your biggest advantage:
 **Compound interest example:**
 
 If you save ₱2,000/month starting at age 20 at 6% annual return:
-- By age 30: ₱333,000
-- By age 40: ₱947,000
-- By age 50: ₱2,097,000
+- By age 30: ₱328,000
+- By age 40: ₱924,000
+- By age 50: ₱2,009,000
 
 If you start at age 30 instead:
-- By age 40: ₱333,000
-- By age 50: ₱947,000
+- By age 40: ₱328,000
+- By age 50: ₱924,000
 
-Starting 10 years earlier gives you **₱1,150,000 more** by age 50 — even though you only saved ₱240,000 more.
+Starting 10 years earlier gives you **₱1,085,000 more** by age 50 — even though you only saved ₱240,000 more.
 
 Time is the most powerful wealth-building tool, and you have more of it than anyone else.
 

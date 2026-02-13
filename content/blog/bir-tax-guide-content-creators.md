@@ -18,9 +18,10 @@ If you earn money from TikTok, YouTube, Instagram, or any other platform, the BI
 
 1. **Get a TIN** — Visit your local BIR Revenue District Office (RDO) or apply online through the eREG system
 2. **Fill out BIR Form 1901** — Registration form for self-employed individuals
-3. **Pay the registration fee** — ₱500 annual registration fee (BIR Form 0605)
-4. **Get your Certificate of Registration (COR)** — This lists the taxes you need to file
-5. **Register your books of accounts** — Can be manual or digital (spreadsheets count!)
+3. **Get your Certificate of Registration (COR)** — This lists the taxes you need to file
+4. **Register your books of accounts** — Can be manual or digital (spreadsheets count!)
+
+Note: The ₱500 annual registration fee was abolished under RA 11976 (Ease of Paying Taxes Act) effective January 2024. You no longer need to pay this.
 
 ## 8% Flat Tax vs Graduated Tax: Which Should You Choose?
 
@@ -50,9 +51,11 @@ Say you earn ₱500,000 per year from content creation:
 
 **Graduated + OSD:**
 - After 40% OSD: ₱500,000 × 60% = ₱300,000
-- Tax (using TRAIN brackets): **~₱22,500** + 3% percentage tax on ₱500,000 (₱15,000) = **~₱37,500**
+- Income tax (TRAIN brackets): ₱300,000 - ₱250,000 = ₱50,000 × 15% = **₱7,500**
+- Plus 3% percentage tax: ₱500,000 × 3% = **₱15,000**
+- Total: **₱22,500**
 
-In this case, 8% flat wins. But if your annual gross exceeds ₱3 million, graduated + OSD might save you more. Use MoneyGlow's tax estimator to compare!
+In this case, the two options are close (₱20,000 vs ₱22,500). The 8% flat rate is only available if your gross income doesn't exceed ₱3 million per year. Use MoneyGlow's tax estimator to compare!
 
 ## Key Tax Deadlines
 
@@ -61,7 +64,6 @@ In this case, 8% flat wins. But if your annual gross exceeds ₱3 million, gradu
 | April 15 | Annual Income Tax Return (BIR Form 1701) |
 | Every quarter | Quarterly Income Tax (BIR Form 1701Q) |
 | Every quarter | Percentage Tax (BIR Form 2551Q) — if graduated |
-| January 31 | Annual Registration Fee (BIR Form 0605) |
 
 ## Tips for Creator Tax Filing
 

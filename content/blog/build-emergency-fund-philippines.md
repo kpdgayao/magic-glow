@@ -52,7 +52,7 @@ Digital banks offer the highest interest rates for savings:
 | Tonik | Up to 4.5% p.a. | Yes | ₱0 |
 | Maya Savings | Up to 3.5% p.a. | Yes | ₱0 |
 | GCash GSave | ~2.6% p.a. | Yes (via CIMB) | ₱0 |
-| GoTyme | Up to 5% p.a. | Yes | ₱0 |
+| GoTyme | Up to 3% p.a. | Yes | ₱0 |
 | Seabank | Up to 4% p.a. | Yes | ₱0 |
 
 *Rates as of early 2026. Check current rates before depositing.*

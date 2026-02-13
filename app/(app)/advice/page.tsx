@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { formatMessage } from "@/lib/format-markdown";
-import { Sparkles, Flame, Trophy, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Sparkles, Flame, Trophy, Loader2, BookOpen } from "lucide-react";
 
 interface StatsData {
   xp: number;
@@ -25,18 +26,30 @@ interface StatsData {
   glowEmoji: string;
 }
 
+interface BlogPostMeta {
+  slug: string;
+  title: string;
+  coverEmoji: string;
+}
+
 export default function AdvicePage() {
   const [advice, setAdvice] = useState<string | null>(null);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [streaming, setStreaming] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<BlogPostMeta[]>([]);
 
   useEffect(() => {
     async function loadData() {
-      // Fetch stats in parallel
+      // Fetch stats and blog posts in parallel
       fetch("/api/user/stats")
         .then((res) => res.json())
         .then(setStats)
+        .catch(() => {});
+
+      fetch("/api/blog/posts")
+        .then((res) => res.json())
+        .then((posts: BlogPostMeta[]) => setBlogPosts(posts.slice(0, 3)))
         .catch(() => {});
 
       try {
@@ -286,6 +299,36 @@ export default function AdvicePage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Related Blog Posts */}
+      {blogPosts.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-mg-blue" />
+              <h2 className="text-sm font-semibold">Recommended Reading</h2>
+            </div>
+            <Link
+              href="/blog"
+              className="text-xs text-mg-pink hover:underline"
+            >
+              View all
+            </Link>
+          </div>
+          {blogPosts.map((post) => (
+            <Link key={post.slug} href={`/blog/${post.slug}`}>
+              <Card className="border-border bg-card hover:border-muted-foreground/30 transition-colors cursor-pointer">
+                <CardContent className="p-3 flex items-center gap-3">
+                  <span className="text-xl shrink-0">{post.coverEmoji}</span>
+                  <p className="text-sm font-medium line-clamp-1">
+                    {post.title}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -86,8 +86,8 @@ Set reminders to pay your government contributions on time — these are importa
 |---------|-------|------|
 | User base | Larger (90M+) | Growing fast |
 | Savings rate | ~2.6% (GSave) | ~3.5% |
-| Crypto trading | No | Yes |
-| Investments | GInvest, GStocks | Maya Crypto |
+| Crypto trading | Yes (GCrypto) | Yes (Maya Crypto) |
+| Investments | GInvest, GStocks, GCrypto | Maya Crypto |
 | Bill payments | Extensive | Extensive |
 | Business features | GCash for Business | Maya Business |
 | Insurance | GInsure | Limited |

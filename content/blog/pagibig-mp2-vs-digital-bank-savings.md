@@ -26,10 +26,10 @@ MP2 (Modified Pag-IBIG II) is a voluntary savings program from Pag-IBIG Fund (HD
 
 | Year | Dividend Rate |
 |------|-------------|
-| 2023 | 6.01% |
-| 2022 | 6.63% |
-| 2021 | 5.81% |
-| 2020 | 5.50% |
+| 2024 | 7.10% |
+| 2023 | 7.05% |
+| 2022 | 7.03% |
+| 2021 | 6.00% |
 
 These rates beat inflation and most savings accounts.
 
@@ -40,7 +40,7 @@ Digital banks like Tonik, SeaBank, GoTyme, and Maya offer high-interest savings 
 **Key features:**
 - No minimum balance (usually)
 - No lock-in period
-- PDIC insured up to ₱500,000
+- PDIC insured up to ₱1,000,000
 - Interest rates: 3-6% per year
 - Instant withdrawals
 
@@ -48,7 +48,7 @@ Digital banks like Tonik, SeaBank, GoTyme, and Maya offer high-interest savings 
 
 | Bank | Regular Savings | Time Deposit |
 |------|----------------|-------------|
-| GoTyme | Up to 5% p.a. | Up to 6% p.a. |
+| GoTyme | Up to 3% p.a. | Up to 6% p.a. |
 | Tonik | Up to 4.5% p.a. | Up to 6% p.a. |
 | SeaBank | Up to 4% p.a. | Up to 5.5% p.a. |
 | Maya | Up to 3.5% p.a. | Up to 5% p.a. |
@@ -63,7 +63,7 @@ Digital banks like Tonik, SeaBank, GoTyme, and Maya offer high-interest savings 
 | Lock-in | 5 years | None |
 | Tax | Tax-free | 20% withholding tax on interest |
 | Min deposit | ₱500 | ₱0-₱1 |
-| Insurance | HDMF guaranteed | PDIC (up to ₱500K) |
+| Insurance | HDMF guaranteed | PDIC (up to ₱1M) |
 | Liquidity | Low (5-year term) | High (instant withdrawal) |
 | Compounding | Annual (if you don't withdraw) | Daily/monthly |
 

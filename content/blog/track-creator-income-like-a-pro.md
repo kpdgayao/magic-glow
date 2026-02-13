@@ -63,8 +63,8 @@ At minimum, screenshot every payment notification and log it weekly. Better than
 
 ### Platform Revenue
 - YouTube AdSense
-- TikTok Creator Fund / Creativity Program
-- Facebook Reels bonuses
+- TikTok Creativity Program / Creator Rewards
+- Meta Content Monetization (Facebook & Instagram)
 - Instagram badges and bonuses
 
 ### Brand Partnerships

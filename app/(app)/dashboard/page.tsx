@@ -13,6 +13,7 @@ import {
   Sparkles,
   Flame,
   Loader2,
+  BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,6 +39,15 @@ interface StatsData {
   glowScore: number;
   glowLabel: string;
   glowEmoji: string;
+}
+
+interface BlogPostMeta {
+  slug: string;
+  title: string;
+  date: string;
+  excerpt: string;
+  tags: string[];
+  coverEmoji: string;
 }
 
 const FEATURES = [
@@ -80,6 +90,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<StatsData | null>(null);
   const [adviceText, setAdviceText] = useState<string | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(true);
+  const [blogPosts, setBlogPosts] = useState<BlogPostMeta[]>([]);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -98,6 +109,11 @@ export default function DashboardPage() {
       .then((data) => setAdviceText(data.advice || null))
       .catch(() => {})
       .finally(() => setAdviceLoading(false));
+
+    fetch("/api/blog/posts")
+      .then((res) => res.json())
+      .then((posts: BlogPostMeta[]) => setBlogPosts(posts.slice(0, 3)))
+      .catch(() => {});
   }, []);
 
   const greeting = user?.name ? `Hi ${user.name}!` : "Hi there!";
@@ -222,6 +238,41 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </Link>
+
+      {/* Blog Posts */}
+      {blogPosts.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-mg-blue" />
+              <h2 className="text-sm font-semibold">Learn</h2>
+            </div>
+            <Link
+              href="/blog"
+              className="text-xs text-mg-pink hover:underline"
+            >
+              View all
+            </Link>
+          </div>
+          {blogPosts.map((post) => (
+            <Link key={post.slug} href={`/blog/${post.slug}`}>
+              <Card className="border-border bg-card hover:border-muted-foreground/30 transition-colors cursor-pointer">
+                <CardContent className="p-3 flex items-start gap-3">
+                  <span className="text-xl shrink-0">{post.coverEmoji}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium line-clamp-1">
+                      {post.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                      {post.excerpt}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
