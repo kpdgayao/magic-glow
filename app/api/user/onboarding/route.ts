@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { onboardingSchema } from "@/lib/validations";
+import { sendWelcomeEmail } from "@/lib/mail";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,6 +24,15 @@ export async function POST(req: NextRequest) {
         languagePref: data.languagePref,
         onboarded: true,
       },
+    });
+
+    // Send welcome email in the background (don't await — shouldn't block response)
+    sendWelcomeEmail(session.email, {
+      name: data.name,
+      financialGoal: data.financialGoal,
+      hasEmergencyFund: data.hasEmergencyFund || null,
+      debtSituation: data.debtSituation || null,
+      employmentStatus: data.employmentStatus || null,
     });
 
     return NextResponse.json({ message: "Onboarding complete" });
