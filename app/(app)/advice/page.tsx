@@ -132,8 +132,9 @@ export default function AdvicePage() {
               </p>
               {advice ? (
                 <div
-                  className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none
-                    [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5
+                  className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none overflow-hidden
+                    [&_p]:my-1 [&_ul]:my-1 [&_ul]:pl-4 [&_ul]:list-disc
+                    [&_ol]:my-1 [&_ol]:pl-4 [&_ol]:list-decimal [&_li]:my-0.5
                     [&_strong]:text-foreground [&_em]:text-muted-foreground"
                   dangerouslySetInnerHTML={{
                     __html: formatMessage(advice),

@@ -33,7 +33,21 @@ function ChatContent() {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setLoadingHistory(false);
+    fetch("/api/chat")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.messages?.length) {
+          setMessages(
+            data.messages.map((m: { id: string; role: string; content: string }) => ({
+              id: m.id,
+              role: m.role as "USER" | "ASSISTANT",
+              content: m.content,
+            }))
+          );
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingHistory(false));
   }, []);
 
   useEffect(() => {
@@ -206,8 +220,9 @@ function ChatContent() {
                 {msg.role === "ASSISTANT" ? (
                   msg.content ? (
                     <div
-                      className="prose prose-invert prose-sm max-w-none
-                        [&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5
+                      className="prose prose-invert prose-sm max-w-none overflow-hidden
+                        [&_p]:my-1 [&_ul]:my-1 [&_ul]:pl-4 [&_ul]:list-disc
+                        [&_ol]:my-1 [&_ol]:pl-4 [&_ol]:list-decimal [&_li]:my-0.5
                         [&_strong]:text-foreground [&_em]:text-muted-foreground"
                       dangerouslySetInnerHTML={{
                         __html: formatMessage(msg.content),

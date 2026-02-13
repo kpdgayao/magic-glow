@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { streamChat, saveChatResponse } from "@/lib/claude";
 import { chatMessageSchema } from "@/lib/validations";
+
+export async function GET() {
+  try {
+    const session = await requireAuth();
+
+    const messages = await prisma.chatMessage.findMany({
+      where: { userId: session.userId },
+      orderBy: { createdAt: "asc" },
+      take: 20,
+      select: { id: true, role: true, content: true },
+    });
+
+    return NextResponse.json({ messages });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {

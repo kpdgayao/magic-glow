@@ -87,7 +87,7 @@ export async function chat(userId: string, userMessage: string) {
   });
 
   const response = await getAnthropic().messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     system: buildSystemPrompt(user),
     messages,
@@ -139,7 +139,7 @@ export async function streamChat(userId: string, userMessage: string) {
   });
 
   const stream = getAnthropic().messages.stream({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
     system: buildSystemPrompt(user),
     messages,
@@ -181,7 +181,7 @@ export function streamDailyAdvice(user: {
   const topic = ADVICE_TOPICS[dayOfMonth % ADVICE_TOPICS.length];
 
   return getAnthropic().messages.stream({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 400,
     system: `You are MoneyGlow AI, a friendly Filipino financial literacy coach for young digital creators. Give one daily money tip. ${lang}`,
     messages: [
@@ -218,7 +218,7 @@ export async function generateQuizChallenge(
       : "Respond in clear, simple English.";
 
   const response = await getAnthropic().messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 1500,
     system: `You are MoneyGlow AI, a Filipino financial literacy coach. Generate a personalized 30-day money challenge. ${lang}`,
     messages: [
@@ -298,7 +298,7 @@ export async function generateDailyAdvice(userId: string): Promise<string> {
   const topic = ADVICE_TOPICS[dayOfMonth % ADVICE_TOPICS.length];
 
   const response = await getAnthropic().messages.create({
-    model: "claude-sonnet-4-5-20250929",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 400,
     system: `You are MoneyGlow AI, a friendly Filipino financial literacy coach for young digital creators. Give one daily money tip. ${lang}`,
     messages: [

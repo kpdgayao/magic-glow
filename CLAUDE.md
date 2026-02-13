@@ -19,7 +19,7 @@
 | Database | PostgreSQL + Prisma ORM | Railway hosted |
 | Auth | JWT with jose | Magic link (passwordless) |
 | Email | Mailjet | Magic link delivery |
-| AI | Anthropic Claude SDK | claude-sonnet-4-5-20250929 |
+| AI | Anthropic Claude SDK | claude-haiku-4-5-20251001 |
 | Deployment | Railway | Auto-deploy from GitHub |
 | DNS | Cloudflare | moneyglow.app |
 
@@ -533,7 +533,7 @@ export async function chat(userId: string, userMessage: string) {
 
   // Call Claude
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 1024,
     system: buildSystemPrompt(user),
     messages,
@@ -573,7 +573,7 @@ export async function generateQuizChallenge(userId: string, quizResult: string) 
     : 'Respond in clear, simple English.';
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 1500,
     system: `You are MoneyGlow AI, a Filipino financial literacy coach. Generate a personalized 30-day money challenge. ${lang}`,
     messages: [
