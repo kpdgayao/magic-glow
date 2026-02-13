@@ -25,7 +25,7 @@ interface MonthSummary {
   net: number;
 }
 
-// ─── Tax constants (TRAIN Law 2018+) ─────────────────────────
+// ─── Tax constants (TRAIN Law RA 10963, 2023+ brackets) ─────
 
 const GRADUATED_BRACKETS = [
   { min: 0, max: 250_000, rate: 0, base: 0 },
@@ -36,18 +36,38 @@ const GRADUATED_BRACKETS = [
   { min: 8_000_000, max: Infinity, rate: 0.35, base: 2_202_500 },
 ];
 
-function calcGraduated(gross: number): number {
+const OSD_RATE = 0.4; // 40% Optional Standard Deduction
+const PERCENTAGE_TAX_RATE = 0.03; // 3% quarterly percentage tax (restored July 2023)
+
+/** Graduated income tax on taxable income (after deductions) */
+function calcGraduatedIncomeTax(taxableIncome: number): number {
   for (let i = GRADUATED_BRACKETS.length - 1; i >= 0; i--) {
     const b = GRADUATED_BRACKETS[i];
-    if (gross > b.min) {
-      return b.base + (gross - b.min) * b.rate;
+    if (taxableIncome > b.min) {
+      return b.base + (taxableIncome - b.min) * b.rate;
     }
   }
   return 0;
 }
 
+/**
+ * Graduated option total tax (for self-employed/freelancers):
+ * = Graduated income tax on (Gross - 40% OSD) + 3% percentage tax on Gross
+ */
+function calcGraduatedTotal(gross: number) {
+  const taxableIncome = gross * (1 - OSD_RATE); // Gross minus 40% OSD
+  const incomeTax = calcGraduatedIncomeTax(taxableIncome);
+  const percentageTax = gross * PERCENTAGE_TAX_RATE;
+  return { incomeTax, percentageTax, taxableIncome, total: incomeTax + percentageTax };
+}
+
+/**
+ * 8% flat tax option (for self-employed/freelancers under ₱3M):
+ * = 8% of (Gross - ₱250K)
+ * Replaces BOTH graduated income tax AND 3% percentage tax.
+ */
 function calcFlat8(gross: number): number {
-  if (gross > 3_000_000) return Infinity; // not eligible
+  if (gross > 3_000_000) return Infinity; // not eligible above VAT threshold
   return Math.max(0, (gross - 250_000) * 0.08);
 }
 
@@ -112,10 +132,10 @@ export default function InsightsPage() {
 
   // ── Tax calculations ──
   const flat8Tax = calcFlat8(annualGross);
-  const graduatedTax = calcGraduated(annualGross);
+  const graduated = calcGraduatedTotal(annualGross);
   const flat8Eligible = annualGross <= 3_000_000;
   const recommended =
-    flat8Eligible && flat8Tax <= graduatedTax ? "flat8" : "graduated";
+    flat8Eligible && flat8Tax <= graduated.total ? "flat8" : "graduated";
 
   // ── Trends chart helpers ──
   const hasData = months.some((m) => m.income > 0 || m.expenses > 0);
@@ -464,7 +484,7 @@ export default function InsightsPage() {
                 <p className="text-xs font-medium">8% Flat</p>
                 {recommended === "flat8" && (
                   <span className="text-[11px] text-mg-teal font-semibold">
-                    SAVES MORE
+                    BETTER
                   </span>
                 )}
               </div>
@@ -479,6 +499,9 @@ export default function InsightsPage() {
                   <p className="text-[11px] text-muted-foreground">
                     {formatCurrency(flat8Tax / 12)}/mo
                   </p>
+                  <p className="text-[11px] text-muted-foreground/60 mt-1">
+                    Replaces income tax + percentage tax
+                  </p>
                 </>
               ) : (
                 <p className="text-xs text-muted-foreground">
@@ -488,7 +511,7 @@ export default function InsightsPage() {
             </CardContent>
           </Card>
 
-          {/* Graduated */}
+          {/* Graduated + OSD */}
           <Card
             className={
               recommended === "graduated"
@@ -498,26 +521,30 @@ export default function InsightsPage() {
           >
             <CardContent className="p-3 space-y-1">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium">Graduated</p>
+                <p className="text-xs font-medium">Graduated + OSD</p>
                 {recommended === "graduated" && (
                   <span className="text-[11px] text-mg-teal font-semibold">
-                    SAVES MORE
+                    BETTER
                   </span>
                 )}
               </div>
               <p className="font-[family-name:var(--font-playfair)] text-lg font-bold text-mg-blue">
-                {formatCurrency(graduatedTax)}
+                {formatCurrency(graduated.total)}
               </p>
               <p className="text-[11px] text-muted-foreground">
-                {((graduatedTax / annualGross) * 100).toFixed(1)}% effective
+                {((graduated.total / annualGross) * 100).toFixed(1)}% effective
               </p>
               <p className="text-[11px] text-muted-foreground">
-                {formatCurrency(graduatedTax / 12)}/mo
+                {formatCurrency(graduated.total / 12)}/mo
+              </p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1">
+                Income tax {formatCurrency(graduated.incomeTax)} + 3% tax {formatCurrency(graduated.percentageTax)}
               </p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Savings comparison */}
         {flat8Eligible && (
           <Card
             className={
@@ -529,12 +556,33 @@ export default function InsightsPage() {
             <CardContent className="p-3 text-center">
               <p className="text-xs text-muted-foreground">
                 {recommended === "flat8"
-                  ? `8% flat saves you ${formatCurrency(graduatedTax - flat8Tax)} vs graduated`
-                  : `Graduated saves you ${formatCurrency(flat8Tax - graduatedTax)} vs 8% flat`}
+                  ? `8% flat saves you ${formatCurrency(graduated.total - flat8Tax)}/year vs graduated`
+                  : `Graduated + OSD saves you ${formatCurrency(flat8Tax - graduated.total)}/year vs 8% flat`}
               </p>
             </CardContent>
           </Card>
         )}
+
+        {/* How it works */}
+        <Card className="border-border bg-card">
+          <CardContent className="p-4 space-y-2">
+            <p className="text-xs font-medium">How this works</p>
+            <div className="space-y-1.5 text-[11px] text-muted-foreground">
+              <div className="flex items-start justify-between gap-2">
+                <span>Gross income</span>
+                <span className="font-medium text-foreground shrink-0">{formatCurrency(annualGross)}</span>
+              </div>
+              <div className="flex items-start justify-between gap-2">
+                <span>40% OSD (deduction)</span>
+                <span className="shrink-0">-{formatCurrency(annualGross * OSD_RATE)}</span>
+              </div>
+              <div className="flex items-start justify-between gap-2 border-t border-border pt-1.5">
+                <span>Taxable income (graduated)</span>
+                <span className="font-medium text-foreground shrink-0">{formatCurrency(graduated.taxableIncome)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Disclaimer */}
         <Card className="border-mg-blue/20 bg-mg-blue/5">
@@ -546,9 +594,11 @@ export default function InsightsPage() {
                   For Estimation Only
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  This uses the TRAIN Law brackets for self-employed/freelancers.
-                  Actual taxes depend on deductions, filings, and BIR rules.
-                  Consult a CPA for your specific situation.
+                  Based on the TRAIN Law (RA 10963) brackets for self-employed/freelancers.
+                  Uses 40% Optional Standard Deduction (OSD) for graduated rates.
+                  The 8% flat rate replaces both income tax and 3% percentage tax.
+                  Actual taxes depend on your deductions, BIR filings, and specific situation.
+                  Consult a CPA for tax advice.
                 </p>
               </div>
             </div>

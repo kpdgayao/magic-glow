@@ -741,7 +741,7 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 ### Insights Page (`/insights`)
 - **Income vs Expenses chart**: last 6 months side-by-side bars (teal=income, pink=expenses), current month net summary
 - **Compound Interest Calculator**: 3 sliders (monthly savings ₱100–₱50K, years 1–30, rate 1%–15%), result card, growth chart, PH reference rates, tip card
-- **Tax Estimator**: annual gross income slider + presets, compares 8% flat vs graduated (TRAIN Law), shows which saves more, effective rate, monthly breakdown, CPA disclaimer
+- **Tax Estimator**: annual gross income slider + presets, compares 8% flat (replaces income + percentage tax) vs graduated + 40% OSD + 3% percentage tax (TRAIN Law RA 10963, 2023+ brackets), shows OSD breakdown, which option saves more, effective rate, monthly breakdown, CPA disclaimer
 - API: `/api/insights/monthly-summary` — GET last 6 months aggregated income + expenses
 - Empty state when no income/expense data tracked yet
 
