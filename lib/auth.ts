@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { prisma } from "./prisma";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 const COOKIE_NAME = "moneyglow_session";
@@ -40,16 +39,6 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function requireAuth(): Promise<SessionPayload> {
   const session = await getSession();
   if (!session) throw new Error("Unauthorized");
-  return session;
-}
-
-export async function requireAdmin(): Promise<SessionPayload> {
-  const session = await requireAuth();
-  const user = await prisma.user.findUniqueOrThrow({
-    where: { id: session.userId },
-    select: { isAdmin: true },
-  });
-  if (!user.isAdmin) throw new Error("Forbidden");
   return session;
 }
 
