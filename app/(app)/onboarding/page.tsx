@@ -17,7 +17,6 @@ const INCOME_SOURCES = [
   "Facebook",
   "GCash",
   "Maya",
-  "Watsons",
   "Shopee",
   "Lazada",
   "Freelance",
@@ -30,7 +29,9 @@ const INCOME_RANGES = [
   { label: "₱1K–5K", value: 3000 },
   { label: "₱5K–10K", value: 7500 },
   { label: "₱10K–20K", value: 15000 },
-  { label: "₱20K+", value: 25000 },
+  { label: "₱20K–50K", value: 35000 },
+  { label: "₱50K–100K", value: 75000 },
+  { label: "₱100K+", value: 125000 },
 ];
 
 const FINANCIAL_GOALS = [

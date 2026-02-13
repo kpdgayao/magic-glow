@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Save, LogOut, Loader2 } from "lucide-react";
+import { Save, LogOut, Loader2, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { QUIZ_RESULTS, type QuizResultType } from "@/lib/quiz-data";
 
@@ -31,7 +32,6 @@ const INCOME_SOURCES = [
   "Facebook",
   "GCash",
   "Maya",
-  "Watsons",
   "Shopee",
   "Lazada",
   "Freelance",
@@ -145,7 +145,7 @@ export default function ProfilePage() {
             <span className="text-2xl">
               {QUIZ_RESULTS[user.quizResult].emoji}
             </span>
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-medium">Money Personality</p>
               <Badge
                 style={{
@@ -158,8 +158,25 @@ export default function ProfilePage() {
                 {QUIZ_RESULTS[user.quizResult].title}
               </Badge>
             </div>
+            <Link href="/quiz">
+              <Button variant="outline" size="sm" className="shrink-0">
+                <Brain className="h-4 w-4 mr-1" />
+                Retake
+              </Button>
+            </Link>
           </CardContent>
         </Card>
+      )}
+      {!user?.quizResult && (
+        <Link href="/quiz">
+          <Button
+            variant="outline"
+            className="w-full border-mg-blue text-mg-blue hover:bg-mg-blue/10"
+          >
+            <Brain className="h-4 w-4 mr-2" />
+            Take Money Personality Quiz
+          </Button>
+        </Link>
       )}
 
       {/* Edit Form */}

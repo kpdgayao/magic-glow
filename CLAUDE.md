@@ -2,11 +2,11 @@
 
 ## 🎯 Project Overview
 
-**MoneyGlow** is a financial literacy web app for young Filipino digital creators, built as a companion tool for the Beauty for a Better Life (BFBL) program by L'Oréal Philippines × DTI × SPARK! Philippines.
+**MoneyGlow** is a financial literacy web app for young Filipino digital creators, powered by IOL Inc.
 
 **Live Date:** February 14, 2026 (Saturday, 9:00 AM PHT)
 **Domain:** moneyglow.app (Cloudflare DNS → Railway)
-**Audience:** 277 participants, mostly female, ages 18–35, UC Baguio students + other institutions, learning to become digital beauty creators via TikTok and Watsons Philippines.
+**Audience:** Young Filipino digital creators, ages 18–35, building their online presence and income through content creation and social media.
 
 ---
 
@@ -19,7 +19,7 @@
 | Database | PostgreSQL + Prisma ORM | Railway hosted |
 | Auth | JWT with jose | Magic link (passwordless) |
 | Email | Mailjet | Magic link delivery |
-| AI | Anthropic Claude SDK | claude-sonnet-4-5-20250514 |
+| AI | Anthropic Claude SDK | claude-sonnet-4-5-20250929 |
 | Deployment | Railway | Auto-deploy from GitHub |
 | DNS | Cloudflare | moneyglow.app |
 
@@ -70,15 +70,16 @@ moneyglow/
 │   │
 │   ├── (app)/
 │   │   ├── layout.tsx                # App layout (bottom nav, auth guard)
-│   │   ├── dashboard/page.tsx        # Home — feature cards grid
+│   │   ├── dashboard/page.tsx        # Home — feature cards, glow score, daily advice teaser
 │   │   ├── onboarding/page.tsx       # First-time user profile setup
+│   │   ├── advice/page.tsx           # Daily AI advice + streaks + XP/level display
 │   │   ├── budget/page.tsx           # 50/30/20 calculator
 │   │   ├── grow/page.tsx             # Compound interest calculator
 │   │   ├── quiz/page.tsx             # Money personality quiz (5 questions)
 │   │   ├── quiz/result/page.tsx      # Quiz result + AI 30-day challenge
 │   │   ├── tracker/page.tsx          # Creator income tracker
 │   │   ├── chat/page.tsx             # AI chat interface
-│   │   └── profile/page.tsx          # Edit profile + language preference
+│   │   └── profile/page.tsx          # Edit profile + quiz access + language preference
 │   │
 │   └── api/
 │       ├── auth/
@@ -88,17 +89,20 @@ moneyglow/
 │       │   └── logout/route.ts            # POST — clear session cookie
 │       ├── user/
 │       │   ├── profile/route.ts           # GET/PUT — user profile
+│       │   ├── stats/route.ts             # GET — gamification stats (XP, level, glow score, streak)
 │       │   └── onboarding/route.ts        # POST — complete onboarding
+│       ├── advice/route.ts                # GET — daily AI advice (cached per day)
 │       ├── chat/route.ts                  # POST — AI chat (streaming)
 │       ├── quiz/
 │       │   └── result/route.ts            # POST — save result + generate AI challenge
-│       ├── income/route.ts                # GET/POST/DELETE — income entries
-│       └── budget/route.ts                # GET/POST — budget snapshots
+│       ├── income/route.ts                # GET/POST/DELETE — income entries (+XP award)
+│       └── budget/route.ts                # GET/POST — budget snapshots (+XP award)
 │
 ├── lib/
 │   ├── auth.ts                       # JWT sign/verify, getSession, requireAuth
 │   ├── prisma.ts                     # Prisma client singleton
-│   ├── claude.ts                     # Claude API helper + context builder
+│   ├── claude.ts                     # Claude API helper + context builder + daily advice
+│   ├── gamification.ts               # XP awards, levels, glow score, streaks
 │   ├── mail.ts                       # Mailjet send magic link
 │   ├── validations.ts                # Zod schemas for all inputs
 │   └── utils.ts                      # cn() helper, formatCurrency, etc.
@@ -175,6 +179,11 @@ model User {
   quizResult      QuizResult?
   quizChallenge   String?        // AI-generated 30-day challenge (markdown)
   onboarded       Boolean        @default(false)
+  streakCount     Int            @default(0)
+  lastCheckIn     DateTime?
+  longestStreak   Int            @default(0)
+  xp              Int            @default(0)
+  level           Int            @default(1)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -182,6 +191,7 @@ model User {
   incomeEntries   IncomeEntry[]
   budgetSnapshots BudgetSnapshot[]
   magicLinks      MagicLink[]
+  dailyAdvice     DailyAdvice[]
 }
 
 model MagicLink {
@@ -211,7 +221,7 @@ model IncomeEntry {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  source    String   // "TikTok", "YouTube", "GCash", "Watsons", etc.
+  source    String   // "TikTok", "YouTube", "GCash", etc.
   type      String   // "Brand Deal", "Affiliate", "Commission", etc.
   amount    Float
   date      DateTime
@@ -232,6 +242,18 @@ model BudgetSnapshot {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+model DailyAdvice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
 }
 ```
 
@@ -369,7 +391,7 @@ export async function sendMagicLink(email: string, token: string) {
             </a>
             <p style="color: #999; font-size: 13px;">This link expires in 15 minutes. If you didn't request this, you can safely ignore this email.</p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
-            <p style="color: #ccc; font-size: 11px;">MoneyGlow — Your Financial Glow-Up Starts Here<br>BFBL × L'Oréal × DTI × SPARK! Philippines</p>
+            <p style="color: #ccc; font-size: 11px;">MoneyGlow — Powered by <a href="https://www.iol.ph" style="color: #FF6B9D; text-decoration: none;">IOL Inc.</a></p>
           </div>
         `,
       },
@@ -424,7 +446,7 @@ function buildSystemPrompt(user: UserContext): string {
 - Money personality: ${user.quizResult || 'not taken yet'}
 
 ## CONTEXT
-This user is a participant in the Beauty for a Better Life (BFBL) program by L'Oréal Philippines, DTI, and SPARK! Philippines. They are learning to become digital beauty creators using TikTok and Watsons Philippines. Many are university students in Baguio City.
+This user is a young Filipino digital creator building their online presence and income. Many are university students learning content creation, social media monetization, and financial management.
 
 ## LANGUAGE
 ${lang}
@@ -468,7 +490,7 @@ export async function chat(userId: string, userMessage: string) {
 
   // Call Claude
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 1024,
     system: buildSystemPrompt(user),
     messages,
@@ -508,7 +530,7 @@ export async function generateQuizChallenge(userId: string, quizResult: string) 
     : 'Respond in clear, simple English.';
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 1500,
     system: `You are MoneyGlow AI, a Filipino financial literacy coach. Generate a personalized 30-day money challenge. ${lang}`,
     messages: [
@@ -601,7 +623,7 @@ export async function POST(req: NextRequest) {
 - Both loaded in `app/layout.tsx` via `next/font/google`
 
 ### Bottom Navigation
-5 tabs: Home (✦), Budget (₱), Grow (📈), Quiz (🧠), Track (💰)
+5 tabs: Home (✦), Budget (₱), Grow (📈), Advice (💡), Track (💰)
 Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 
 ### Mobile-First
@@ -619,31 +641,31 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Email input field
 - "Send Magic Link" button
 - Subtitle: "We'll send you a sign-in link — no password needed!"
-- BFBL program badge at bottom
+- "Powered by IOL Inc." footer with link
 - After sending: show confirmation message "Check your email! ✨"
 
 ### Onboarding Page (`/onboarding`)
 - Step 1: Name + Age
-- Step 2: Income sources (multi-select chips: TikTok, YouTube, Instagram, Facebook, GCash, Maya, Watsons, Shopee, Lazada, Freelance, Allowance, Part-time Job, Other)
-- Step 3: Estimated monthly income (slider or preset buttons: ₱1K–5K, ₱5K–10K, ₱10K–20K, ₱20K+)
+- Step 2: Income sources (multi-select chips: TikTok, YouTube, Instagram, Facebook, GCash, Maya, Shopee, Lazada, Freelance, Allowance, Part-time Job, Other)
+- Step 3: Estimated monthly income (preset buttons: ₱1K–5K, ₱5K–10K, ₱10K–20K, ₱20K–50K, ₱50K–100K, ₱100K+)
 - Step 4: Financial goal (single select: Save Emergency Fund, Pay Off Debt, Start Investing, Budget Better, Grow Creator Income)
 - Step 5: Language preference (English / Taglish)
 - Progress bar at top
 - "Get Started" button → redirect to dashboard
 
 ### Dashboard (`/dashboard`)
-- Greeting: "Hi {name}! ✨" or "Hi there! ✨" if no name
-- 4 feature cards in 2×2 grid (same as the artifact we built):
+- Greeting: "Hi {name}!" or "Hi there!" if no name
+- Glow score + streak cards (2-column grid)
+- XP progress bar to next level
+- 4 feature cards in 2×2 grid:
   - Budget (₱) — 50/30/20 Calculator
   - Grow (📈) — Compound Interest
-  - Quiz (🧠) — Money Personality
+  - Advice (💡) — Daily Money Tips
   - Track (💰) — Income Tracker
-- If quiz taken: show result badge
-- Quick stats: total tracked income this month, last budget snapshot
-- AI tip of the day (can be static for MVP, or a cached AI-generated tip)
+- Daily AI advice teaser card (clickable, links to /advice)
 
 ### Budget Page (`/budget`)
-- Income input + quick preset buttons (₱5K, ₱10K, ₱15K, ₱20K)
+- Income input + quick preset buttons (₱5K, ₱10K, ₱20K, ₱50K, ₱100K)
 - Calculate button → show 50/30/20 split
 - Visual bar showing the 3 categories
 - Each category card with Filipino-relevant expense examples:
@@ -655,7 +677,7 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - Creator tip card at bottom
 
 ### Grow Page (`/grow`)
-- 3 sliders: Monthly savings (₱100–₱10,000), Years (1–30), Interest rate (1%–15%)
+- 3 sliders: Monthly savings (₱100–₱50,000), Years (1–30), Interest rate (1%–15%)
 - Big result number: "After X years, you'll have ₱X"
 - Deposited vs Interest earned breakdown
 - Bar chart showing growth over time (deposited in blue, interest in amber)
@@ -682,7 +704,7 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - "By Platform" breakdown with progress bars (color-coded per platform)
 - List of income entries (source, type, amount, date) with delete button
 - "Add Income" button → expandable form:
-  - Platform (chip selector): TikTok, YouTube, Instagram, Facebook, GCash, Maya, Watsons, Shopee, Lazada, Other
+  - Platform (chip selector): TikTok, YouTube, Instagram, Facebook, GCash, Maya, Shopee, Lazada, Other
   - Type (chip selector): Brand Deal, Affiliate, Commission, Ad Revenue, Tips/Gifts, Freelance, Other
   - Amount (₱)
   - Date
@@ -705,8 +727,16 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 ### Profile Page (`/profile`)
 - View/edit: Name, Age, Income sources, Monthly income, Financial goal
 - Language preference toggle (English / Taglish)
-- Quiz result display (if taken)
+- Quiz result display (if taken) with "Retake Quiz" button
+- "Take Money Personality Quiz" button (if quiz not taken)
 - Logout button
+
+### Advice Page (`/advice`)
+- Daily AI-generated money tip (cached per user per day)
+- Streak counter (consecutive daily visits)
+- Glow score progress bar (0-100, based on tracking, budgets, streaks, XP)
+- XP and level display with progress to next level
+- "How to Earn XP" breakdown card
 
 ---
 
@@ -788,6 +818,42 @@ const QUIZ_RESULTS = {
   },
 };
 ```
+
+---
+
+## 🎮 Gamification System
+
+### XP Awards
+| Action | XP |
+|--------|-----|
+| Get daily advice | +20 |
+| Complete quiz | +25 |
+| Save a budget | +15 |
+| Log income | +10 |
+| Daily check-in | +5 |
+
+### Levels
+| Level | Name | Min XP |
+|-------|------|--------|
+| 1 | Newbie 🌱 | 0 |
+| 2 | Rising Star ⭐ | 100 |
+| 3 | Pro Creator 🚀 | 300 |
+| 4 | Money Master 👑 | 600 |
+
+### Glow Score (0-100)
+Composite score based on:
+- Tracking entries in last 30 days (0-30 pts)
+- Budget save frequency in last 30 days (0-20 pts)
+- Current streak days (0-25 pts)
+- XP activity (0-25 pts)
+
+Labels: Needs TLC 🕯️ (<40), Flickering 🔥 (40-59), Glowing ✨ (60-79), On Fire 💎 (80+)
+
+### Daily Advice
+- AI-generated, personalized to user profile
+- Cached per user per day (DailyAdvice table)
+- Rotates through 30 financial literacy topics
+- Awards XP and updates streak on first daily visit
 
 ---
 

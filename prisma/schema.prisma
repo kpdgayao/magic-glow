@@ -43,6 +43,11 @@ model User {
   quizResult    QuizResult?
   quizChallenge String?
   onboarded     Boolean       @default(false)
+  streakCount   Int           @default(0)
+  lastCheckIn   DateTime?
+  longestStreak Int           @default(0)
+  xp            Int           @default(0)
+  level         Int           @default(1)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -50,6 +55,7 @@ model User {
   incomeEntries   IncomeEntry[]
   budgetSnapshots BudgetSnapshot[]
   magicLinks      MagicLink[]
+  dailyAdvice     DailyAdvice[]
 }
 
 model MagicLink {
@@ -100,4 +106,16 @@ model BudgetSnapshot {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+model DailyAdvice {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+  @@index([userId, date])
 }

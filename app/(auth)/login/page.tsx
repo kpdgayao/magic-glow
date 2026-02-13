@@ -131,13 +131,15 @@ export default function LoginPage() {
 
       <div className="space-y-1">
         <p className="text-xs text-muted-foreground">
-          A companion app for the
-        </p>
-        <p className="text-xs font-medium text-muted-foreground">
-          Beauty for a Better Life (BFBL) Program
-        </p>
-        <p className="text-[10px] text-muted-foreground/60">
-          L&apos;Oreal Philippines x DTI x SPARK! Philippines
+          Powered by{" "}
+          <a
+            href="https://www.iol.ph"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-mg-pink hover:underline"
+          >
+            IOL Inc.
+          </a>
         </p>
       </div>
     </div>

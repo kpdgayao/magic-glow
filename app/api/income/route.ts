@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { incomeEntrySchema } from "@/lib/validations";
+import { awardXP } from "@/lib/gamification";
 
 export async function GET() {
   try {
@@ -42,6 +43,8 @@ export async function POST(req: NextRequest) {
         note: data.note,
       },
     });
+
+    await awardXP(session.userId, "LOG_INCOME");
 
     return NextResponse.json(entry, { status: 201 });
   } catch (error) {

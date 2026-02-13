@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateQuizChallenge } from "@/lib/claude";
 import { quizResultSchema } from "@/lib/validations";
+import { awardXP } from "@/lib/gamification";
 
 // POST with ?action=save — saves result only (no AI)
 // POST with ?action=challenge — generates 30-day challenge (calls AI)
@@ -20,6 +21,7 @@ export async function POST(req: NextRequest) {
         where: { id: session.userId },
         data: { quizResult: result as "YOLO" | "CHILL" | "PLAN" | "MASTER" },
       });
+      await awardXP(session.userId, "COMPLETE_QUIZ");
       return NextResponse.json({ result, challenge: null });
     }
 

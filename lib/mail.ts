@@ -49,7 +49,7 @@ export async function sendMagicLink(email: string, token: string) {
               </a>
               <p style="color: #666; font-size: 13px; margin-top: 24px;">This link expires in 15 minutes. If you didn't request this, you can safely ignore this email.</p>
               <hr style="border: none; border-top: 1px solid #2A2A2A; margin: 24px 0;" />
-              <p style="color: #666; font-size: 11px;">MoneyGlow — BFBL x L'Oreal x DTI x SPARK! Philippines</p>
+              <p style="color: #666; font-size: 11px;">MoneyGlow — Powered by <a href="https://www.iol.ph" style="color: #FF6B9D; text-decoration: none;">IOL Inc.</a></p>
             </div>
           `,
           },

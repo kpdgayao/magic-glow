@@ -3,18 +3,43 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   Calculator,
   TrendingUp,
-  Brain,
+  Lightbulb,
   Wallet,
   Sparkles,
+  Flame,
+  Loader2,
 } from "lucide-react";
 
 interface UserData {
   name: string | null;
   quizResult: string | null;
+}
+
+interface StatsData {
+  xp: number;
+  level: number;
+  levelName: string;
+  levelEmoji: string;
+  nextLevel: {
+    level: number;
+    name: string;
+    emoji: string;
+    xpNeeded: number;
+    progress: number;
+  } | null;
+  streakCount: number;
+  longestStreak: number;
+  glowScore: number;
+  glowLabel: string;
+  glowEmoji: string;
+}
+
+interface AdviceData {
+  advice: string;
 }
 
 const FEATURES = [
@@ -35,10 +60,10 @@ const FEATURES = [
     bg: "bg-mg-amber/10",
   },
   {
-    href: "/quiz",
-    icon: Brain,
-    label: "Quiz",
-    desc: "Money Personality",
+    href: "/advice",
+    icon: Lightbulb,
+    label: "Advice",
+    desc: "Daily Money Tips",
     color: "text-mg-blue",
     bg: "bg-mg-blue/10",
   },
@@ -52,21 +77,28 @@ const FEATURES = [
   },
 ];
 
-const QUIZ_LABELS: Record<string, { title: string; color: string }> = {
-  YOLO: { title: "YOLO Spender", color: "bg-mg-pink/20 text-mg-pink" },
-  CHILL: { title: "Chill Saver", color: "bg-mg-amber/20 text-mg-amber" },
-  PLAN: { title: "Planner", color: "bg-mg-blue/20 text-mg-blue" },
-  MASTER: { title: "Money Master", color: "bg-mg-teal/20 text-mg-teal" },
-};
-
 export default function DashboardPage() {
   const [user, setUser] = useState<UserData | null>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [advice, setAdvice] = useState<AdviceData | null>(null);
+  const [adviceLoading, setAdviceLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then(setUser)
       .catch(() => {});
+
+    fetch("/api/user/stats")
+      .then((res) => res.json())
+      .then(setStats)
+      .catch(() => {});
+
+    fetch("/api/advice")
+      .then((res) => res.json())
+      .then(setAdvice)
+      .catch(() => {})
+      .finally(() => setAdviceLoading(false));
   }, []);
 
   const greeting = user?.name ? `Hi ${user.name}!` : "Hi there!";
@@ -90,13 +122,45 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {/* Quiz result badge */}
-      {user?.quizResult && QUIZ_LABELS[user.quizResult] && (
-        <Badge
-          className={`${QUIZ_LABELS[user.quizResult].color} border-0 text-xs`}
-        >
-          {QUIZ_LABELS[user.quizResult].title}
-        </Badge>
+      {/* Glow Score + Streak */}
+      {stats && (
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="border-mg-amber/20 bg-mg-amber/5">
+            <CardContent className="p-3 text-center">
+              <p className="text-2xl">{stats.glowEmoji}</p>
+              <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-amber">
+                {stats.glowScore}
+              </p>
+              <p className="text-[10px] text-muted-foreground">{stats.glowLabel}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-mg-pink/20 bg-mg-pink/5">
+            <CardContent className="p-3 text-center">
+              <Flame className="h-6 w-6 text-mg-pink mx-auto" />
+              <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-pink">
+                {stats.streakCount}
+              </p>
+              <p className="text-[10px] text-muted-foreground">
+                day streak {stats.levelEmoji} Lv.{stats.level}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* XP Progress */}
+      {stats?.nextLevel && (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              {stats.levelEmoji} {stats.levelName}
+            </span>
+            <span>
+              {stats.nextLevel.emoji} {stats.nextLevel.name} ({stats.nextLevel.xpNeeded} XP to go)
+            </span>
+          </div>
+          <Progress value={stats.nextLevel.progress} className="h-2" />
+        </div>
       )}
 
       {/* Feature Cards */}
@@ -120,24 +184,35 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* AI Tip Card */}
-      <Card className="border-mg-pink/20 bg-mg-pink/5">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-mg-pink mt-0.5 shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-mg-pink mb-1">
-                MoneyGlow Tip
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Start tracking every income — even ₱50 from a TikTok gift.
-                Small amounts add up! Use the Track tab to build your income
-                history.
-              </p>
+      {/* Daily Advice Teaser */}
+      <Link href="/advice">
+        <Card className="border-mg-pink/20 bg-mg-pink/5 hover:border-mg-pink/40 transition-colors cursor-pointer">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Sparkles className="h-5 w-5 text-mg-pink mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-mg-pink mb-1">
+                  Today&apos;s Money Tip
+                </p>
+                {adviceLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Loading your daily tip...
+                  </div>
+                ) : advice?.advice ? (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {advice.advice}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Tap to get your personalized daily advice
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   );
 }

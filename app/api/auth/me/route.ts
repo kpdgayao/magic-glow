@@ -22,6 +22,10 @@ export async function GET() {
         languagePref: true,
         quizResult: true,
         onboarded: true,
+        xp: true,
+        level: true,
+        streakCount: true,
+        longestStreak: true,
       },
     });
 

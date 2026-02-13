@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const PRESETS = [5000, 10000, 15000, 20000];
+const PRESETS = [5000, 10000, 20000, 50000, 100000];
 
 const CATEGORY_DETAILS = {
   needs: {

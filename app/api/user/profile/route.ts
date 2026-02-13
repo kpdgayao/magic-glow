@@ -21,6 +21,10 @@ export async function GET() {
         quizResult: true,
         quizChallenge: true,
         onboarded: true,
+        xp: true,
+        level: true,
+        streakCount: true,
+        longestStreak: true,
       },
     });
 
@@ -57,6 +61,10 @@ export async function PUT(req: NextRequest) {
         languagePref: true,
         quizResult: true,
         onboarded: true,
+        xp: true,
+        level: true,
+        streakCount: true,
+        longestStreak: true,
       },
     });
 

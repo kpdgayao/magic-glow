@@ -69,8 +69,8 @@ export default function GrowPage() {
               value={[monthly]}
               onValueChange={([v]) => setMonthly(v)}
               min={100}
-              max={10000}
-              step={100}
+              max={50000}
+              step={500}
             />
           </div>
 

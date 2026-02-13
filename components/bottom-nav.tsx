@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, Calculator, TrendingUp, Brain, Wallet } from "lucide-react";
+import { LayoutGrid, Calculator, TrendingUp, Lightbulb, Wallet } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", icon: LayoutGrid },
   { href: "/budget", label: "Budget", icon: Calculator },
   { href: "/grow", label: "Grow", icon: TrendingUp },
-  { href: "/quiz", label: "Quiz", icon: Brain },
+  { href: "/advice", label: "Advice", icon: Lightbulb },
   { href: "/tracker", label: "Track", icon: Wallet },
 ];
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { budgetSchema } from "@/lib/validations";
+import { awardXP } from "@/lib/gamification";
 
 export async function GET() {
   try {
@@ -45,6 +46,8 @@ export async function POST(req: NextRequest) {
         savings,
       },
     });
+
+    await awardXP(session.userId, "SAVE_BUDGET");
 
     return NextResponse.json(snapshot, { status: 201 });
   } catch (error) {

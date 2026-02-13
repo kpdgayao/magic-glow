@@ -49,7 +49,7 @@ function buildSystemPrompt(user: UserContext): string {
 - Money personality: ${user.quizResult || "not taken yet"}
 
 ## CONTEXT
-This user is a participant in the Beauty for a Better Life (BFBL) program by L'Oréal Philippines, DTI, and SPARK! Philippines. They are learning to become digital beauty creators using TikTok and Watsons Philippines. Many are university students in Baguio City.
+This user is a young Filipino digital creator building their online presence and income. Many are university students learning content creation, social media monetization, and financial management.
 
 ## LANGUAGE
 ${lang}
@@ -160,4 +160,76 @@ Format as 4 weekly themes with specific daily/weekly tasks. Include peso amounts
   });
 
   return challenge;
+}
+
+const ADVICE_TOPICS = [
+  "budgeting tips for irregular income",
+  "saving strategies for young Filipinos",
+  "avoiding online scams and fraud",
+  "basic tax tips for content creators",
+  "building an emergency fund",
+  "smart use of digital banks (GCash, Maya, Tonik)",
+  "tracking and growing creator income",
+  "the power of compound interest",
+  "needs vs wants — practical examples",
+  "how to start investing with small amounts",
+  "debt management tips",
+  "negotiating brand deals as a creator",
+  "financial goals and how to set them",
+  "separating business and personal finances",
+  "understanding BIR registration for creators",
+  "GCash/Maya savings features",
+  "how to budget for content creation expenses",
+  "building multiple income streams",
+  "financial red flags to watch for",
+  "celebrating financial wins (no matter how small)",
+  "automating your savings",
+  "understanding SSS, PhilHealth, Pag-IBIG",
+  "pricing your content creation services",
+  "meal prep and food budgeting",
+  "free financial literacy resources",
+  "managing money with friends and family",
+  "when to splurge vs when to save",
+  "creator tax deductions you might miss",
+  "setting up a simple bookkeeping system",
+  "end-of-month money review tips",
+];
+
+export async function generateDailyAdvice(userId: string): Promise<string> {
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+  });
+
+  const lang =
+    user.languagePref === "TAGLISH"
+      ? "Respond in Taglish (mix of Tagalog and English, casual style)."
+      : "Respond in clear, simple English.";
+
+  const dayOfMonth = new Date().getDate() - 1;
+  const topic = ADVICE_TOPICS[dayOfMonth % ADVICE_TOPICS.length];
+
+  const response = await getAnthropic().messages.create({
+    model: "claude-sonnet-4-5-20250929",
+    max_tokens: 400,
+    system: `You are MoneyGlow AI, a friendly Filipino financial literacy coach for young digital creators. Give one daily money tip. ${lang}`,
+    messages: [
+      {
+        role: "user",
+        content: `Give a short, actionable daily money tip about: ${topic}
+
+Personalize for:
+- Name: ${user.name || "Friend"}
+- Goal: ${user.financialGoal || "financial literacy"}
+- Monthly income: ${user.monthlyIncome ? `₱${user.monthlyIncome.toLocaleString()}` : "varies"}
+
+Rules:
+- Max 3 sentences
+- Include one specific action they can do TODAY
+- Use peso amounts in examples
+- Be encouraging and warm`,
+      },
+    ],
+  });
+
+  return response.content[0].type === "text" ? response.content[0].text : "";
 }
