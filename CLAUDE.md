@@ -1103,6 +1103,26 @@ Add CNAME record:
 
 ---
 
+## ♿ Accessibility
+
+### Standards
+- **WCAG 2.1 Level AA** compliance target
+- Minimum font size: 12px (`text-xs`). No `text-[10px]` or `text-[11px]` allowed.
+- Minimum touch target: 44×44px on all interactive elements
+- Color contrast: `--muted-foreground: #AAAAAA` on `#0D0D0D` = ~7.5:1 ratio (passes AAA)
+
+### Implemented
+- **Skip-to-content link**: Root `layout.tsx`, sr-only, visible on focus, links to `#main-content`
+- **`<main>` landmark**: `(app)/layout.tsx` wraps children in `<main id="main-content">`
+- **`aria-live` regions**: Chat messages container + advice streaming card (`aria-live="polite"`)
+- **`aria-label`** on all icon-only buttons (edit budget, send chat, chat input, floating chat FAB)
+- **`htmlFor`/`id`** on all form label→input pairs (budget, tracker, onboarding, profile)
+- **`prefers-reduced-motion`**: `globals.css` disables all animations/transitions when user prefers
+- **Focus indicators**: Global `focus-visible` ring on buttons and links (`globals.css`)
+- **Semantic HTML**: Proper h1→h2→h3 hierarchy, `<nav>` for bottom navigation
+
+---
+
 ## ⚠️ Important Notes
 
 1. **Token costs:** Claude Sonnet at ~$3/M input, ~$15/M output tokens. With 277 users, budget for ~$20-50 in API costs for the seminar day. Set max_tokens to 1024 for chat responses.
