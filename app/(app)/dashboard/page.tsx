@@ -124,26 +124,32 @@ export default function DashboardPage() {
       {/* Glow Score + Streak */}
       {stats && (
         <div className="grid grid-cols-2 gap-3">
-          <Card className="border-mg-amber/20 bg-mg-amber/5">
-            <CardContent className="p-3 text-center">
-              <p className="text-2xl">{stats.glowEmoji}</p>
-              <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-amber">
-                {stats.glowScore}
-              </p>
-              <p className="text-[10px] text-muted-foreground">{stats.glowLabel}</p>
-            </CardContent>
-          </Card>
-          <Card className="border-mg-pink/20 bg-mg-pink/5">
-            <CardContent className="p-3 text-center">
-              <Flame className="h-6 w-6 text-mg-pink mx-auto" />
-              <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-pink">
-                {stats.streakCount}
-              </p>
-              <p className="text-[10px] text-muted-foreground">
-                day streak {stats.levelEmoji} Lv.{stats.level}
-              </p>
-            </CardContent>
-          </Card>
+          <Link href="/advice">
+            <Card className="border-mg-amber/20 bg-mg-amber/5 hover:border-mg-amber/40 transition-colors cursor-pointer h-full">
+              <CardContent className="p-3 text-center">
+                <p className="text-[10px] text-muted-foreground mb-1">Glow Score</p>
+                <p className="text-2xl">{stats.glowEmoji}</p>
+                <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-amber">
+                  {stats.glowScore}<span className="text-sm font-normal text-muted-foreground">/100</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">{stats.glowLabel}</p>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/advice">
+            <Card className="border-mg-pink/20 bg-mg-pink/5 hover:border-mg-pink/40 transition-colors cursor-pointer h-full">
+              <CardContent className="p-3 text-center">
+                <p className="text-[10px] text-muted-foreground mb-1">Daily Streak</p>
+                <Flame className="h-6 w-6 text-mg-pink mx-auto" />
+                <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-pink">
+                  {stats.streakCount} <span className="text-sm font-normal text-muted-foreground">{stats.streakCount === 1 ? "day" : "days"}</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  {stats.levelEmoji} Lv.{stats.level} {stats.levelName}
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       )}
 
@@ -152,7 +158,7 @@ export default function DashboardPage() {
         <div className="space-y-1">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
-              {stats.levelEmoji} {stats.levelName}
+              {stats.levelEmoji} {stats.levelName} · {stats.xp} XP
             </span>
             <span>
               {stats.nextLevel.emoji} {stats.nextLevel.name} ({stats.nextLevel.xpNeeded} XP to go)

@@ -165,7 +165,7 @@ export default function AdvicePage() {
                     {stats.streakCount} day{stats.streakCount !== 1 ? "s" : ""}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Current streak
+                    Daily Streak
                   </p>
                 </div>
               </div>
@@ -174,6 +174,9 @@ export default function AdvicePage() {
                 <p className="text-[10px] text-muted-foreground">Best streak</p>
               </div>
             </div>
+            <p className="text-[11px] text-muted-foreground mt-2">
+              Visit this page every day to build your streak. Consecutive days grow your Glow Score!
+            </p>
           </CardContent>
         </Card>
       )}
@@ -189,10 +192,34 @@ export default function AdvicePage() {
               </span>
             </div>
             <Progress value={stats.glowScore} className="h-3" />
-            <p className="text-xs text-muted-foreground">
-              {stats.glowLabel} — Track income, save budgets, and check in daily
-              to boost your glow!
+            <p className="text-xs text-muted-foreground mb-2">
+              Your Glow Score measures how actively you&apos;re managing your money. The higher your score, the brighter your financial glow!
             </p>
+            <div className="space-y-1.5 text-[11px] text-muted-foreground">
+              <p className="font-medium text-foreground text-xs">How to boost your score:</p>
+              <div className="flex items-center justify-between">
+                <span>Log income &amp; expenses</span>
+                <span>up to 30 pts</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Set monthly budgets</span>
+                <span>up to 20 pts</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Build your daily streak</span>
+                <span>up to 25 pts</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Earn XP from activities</span>
+                <span>up to 25 pts</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-[11px] pt-1 border-t border-border">
+              <span>🕯️ Needs TLC <span className="text-muted-foreground">0–39</span></span>
+              <span>🔥 Flickering <span className="text-muted-foreground">40–59</span></span>
+              <span>✨ Glowing <span className="text-muted-foreground">60–79</span></span>
+              <span>💎 On Fire <span className="text-muted-foreground">80+</span></span>
+            </div>
           </CardContent>
         </Card>
       )}
