@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Save, LogOut, Loader2, Brain } from "lucide-react";
 import { toast } from "sonner";
 import { QUIZ_RESULTS, type QuizResultType } from "@/lib/quiz-data";
+import { INCOME_SOURCES, FINANCIAL_GOALS } from "@/lib/constants";
 
 interface UserProfile {
   id: string;
@@ -24,29 +25,6 @@ interface UserProfile {
   languagePref: "ENGLISH" | "TAGLISH";
   quizResult: QuizResultType | null;
 }
-
-const INCOME_SOURCES = [
-  "TikTok",
-  "YouTube",
-  "Instagram",
-  "Facebook",
-  "GCash",
-  "Maya",
-  "Shopee",
-  "Lazada",
-  "Freelance",
-  "Allowance",
-  "Part-time Job",
-  "Other",
-];
-
-const FINANCIAL_GOALS = [
-  { value: "SAVE_EMERGENCY_FUND", label: "Save Emergency Fund" },
-  { value: "PAY_OFF_DEBT", label: "Pay Off Debt" },
-  { value: "START_INVESTING", label: "Start Investing" },
-  { value: "BUDGET_BETTER", label: "Budget Better" },
-  { value: "GROW_CREATOR_INCOME", label: "Grow Creator Income" },
-];
 
 export default function ProfilePage() {
   const router = useRouter();

@@ -99,6 +99,14 @@
   }
 }
 
+/* Focus visible ring for custom buttons and interactive elements */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 4px;

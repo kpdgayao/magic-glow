@@ -132,7 +132,7 @@ export async function calculateGlowScore(userId: string): Promise<number> {
   const now = new Date();
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const [user, incomeCount, budgetCount] = await Promise.all([
+  const [user, incomeCount, budgetCount, expenseCount] = await Promise.all([
     prisma.user.findUniqueOrThrow({
       where: { id: userId },
       select: { streakCount: true, xp: true },
@@ -140,16 +140,19 @@ export async function calculateGlowScore(userId: string): Promise<number> {
     prisma.incomeEntry.count({
       where: { userId, createdAt: { gte: thirtyDaysAgo } },
     }),
-    prisma.budgetSnapshot.count({
+    prisma.monthlyBudget.count({
+      where: { userId, createdAt: { gte: thirtyDaysAgo } },
+    }),
+    prisma.expense.count({
       where: { userId, createdAt: { gte: thirtyDaysAgo } },
     }),
   ]);
 
-  // Tracking entries (0-30 pts): 1pt per entry, max 30
-  const trackingScore = Math.min(incomeCount, 30);
+  // Tracking entries (0-30 pts): 1pt per income + expense entry, max 30
+  const trackingScore = Math.min(incomeCount + expenseCount, 30);
 
-  // Budget frequency (0-20 pts): ~5pts per budget save, max 20
-  const budgetScore = Math.min(budgetCount * 5, 20);
+  // Budget frequency (0-20 pts): 10pts per monthly budget set, max 20
+  const budgetScore = Math.min(budgetCount * 10, 20);
 
   // Streak (0-25 pts): ~3.5pts per day, max 25
   const streakScore = Math.min(Math.round(user.streakCount * 3.5), 25);

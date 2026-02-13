@@ -77,7 +77,7 @@ moneyglow/
 │   │   ├── grow/page.tsx             # Compound interest calculator
 │   │   ├── quiz/page.tsx             # Money personality quiz (5 questions)
 │   │   ├── quiz/result/page.tsx      # Quiz result + AI 30-day challenge
-│   │   ├── tracker/page.tsx          # Creator income tracker
+│   │   ├── tracker/page.tsx          # Creator income tracker (monthly view)
 │   │   ├── chat/page.tsx             # AI chat interface
 │   │   └── profile/page.tsx          # Edit profile + quiz access + language preference
 │   │
@@ -95,9 +95,9 @@ moneyglow/
 │       ├── chat/route.ts                  # POST — AI chat (streaming SSE)
 │       ├── quiz/
 │       │   └── result/route.ts            # POST — save result + generate AI challenge
-│       ├── income/route.ts                # GET/POST/DELETE — income entries (+XP award)
+│       ├── income/route.ts                # GET(?month&year)/POST/DELETE — income entries (+XP award)
 │       ├── expenses/route.ts              # GET/POST/DELETE — expense tracking (+XP award)
-│       ├── monthly-budget/route.ts        # GET/POST — monthly budgets with spent aggregation
+│       ├── monthly-budget/route.ts        # GET/POST — monthly budgets with spent + tracked income
 │       └── budget/route.ts                # GET/POST — budget snapshots (+XP award)
 │
 ├── lib/
@@ -105,6 +105,7 @@ moneyglow/
 │   ├── prisma.ts                     # Prisma client singleton
 │   ├── claude.ts                     # Claude API helper + streaming + context builder + daily advice
 │   ├── format-markdown.ts            # Markdown→HTML converter for AI responses
+│   ├── constants.ts                  # Shared constants (platforms, income types, categories)
 │   ├── gamification.ts               # XP awards, levels, glow score, streaks
 │   ├── mail.ts                       # Mailjet send magic link
 │   ├── validations.ts                # Zod schemas for all inputs
@@ -112,6 +113,7 @@ moneyglow/
 │
 ├── components/
 │   ├── ui/                           # shadcn/ui components (button, card, input, etc.)
+│   ├── pwa-register.tsx              # Service worker registration (client)
 │   ├── bottom-nav.tsx                # Mobile bottom navigation
 │   ├── chat-message.tsx              # Single chat bubble component
 │   ├── chat-input.tsx                # Chat input with send button
@@ -124,6 +126,11 @@ moneyglow/
 ├── prisma/
 │   ├── schema.prisma                 # Database schema
 │   └── seed.ts                       # Optional: seed sample data
+│
+├── public/
+│   ├── manifest.json                 # PWA manifest
+│   ├── sw.js                         # Service worker (cache-first static, network-first pages)
+│   └── icons/                        # PWA icons (192px, 512px)
 │
 ├── middleware.ts                      # Auth middleware (protect /app routes)
 ├── railway.json                      # Railway deployment config
@@ -709,8 +716,8 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 
 ### Budget Page (`/budget`)
 - **Month navigation**: "February 2026" with `<` `>` arrows
-- **First-time flow**: If no MonthlyBudget for current month, show income setup with presets (₱5K–₱100K)
-- **Budget summary card**: income, total spent, remaining — overall progress bar (green/amber/red)
+- **First-time flow**: If no MonthlyBudget for current month, show income setup with presets (₱5K–₱100K) + "Use tracked income" button if income entries exist
+- **Budget summary card**: income, total spent, remaining, tracked income — overall progress bar (green/amber/red)
 - **3 category cards** (Needs 50% / Wants 30% / Savings 20%):
   - Budgeted amount, spent amount, remaining
   - Colored progress bar: green (<80%), amber (80-100%), red (>100%)
@@ -751,15 +758,16 @@ Plus a floating "Ask MoneyGlow" chat button (bottom-right, above nav)
 - "Retake Quiz" button
 
 ### Tracker Page (`/tracker`)
-- Total earnings summary card
+- **Month navigation**: matches budget page UI (same `<` `>` arrows)
+- Monthly earnings summary card (filtered to current month)
 - "By Platform" breakdown with progress bars (color-coded per platform)
 - List of income entries (source, type, amount, date) with delete button
 - "Add Income" button → expandable form:
   - Platform (chip selector): TikTok, YouTube, Instagram, Facebook, GCash, Maya, Shopee, Lazada, Other
   - Type (chip selector): Brand Deal, Affiliate, Commission, Ad Revenue, Tips/Gifts, Freelance, Other
-  - Amount (₱)
-  - Date
+  - Amount (₱), Date, Note (optional)
 - Pro tip card about tracking gross vs net income
+- Income data linked to budget: monthly-budget API returns tracked income total
 
 ### Chat Page (`/chat`)
 - Full-screen chat interface with **streaming responses** (SSE)

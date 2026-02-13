@@ -14,6 +14,7 @@ import {
   Flame,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface UserData {
   name: string | null;
@@ -84,12 +85,12 @@ export default function DashboardPage() {
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then(setUser)
-      .catch(() => {});
+      .catch(() => toast.error("Failed to load profile"));
 
     fetch("/api/user/stats")
       .then((res) => res.json())
       .then(setStats)
-      .catch(() => {});
+      .catch(() => toast.error("Failed to load stats"));
 
     // Use peek=true so dashboard never triggers slow generation
     fetch("/api/advice?peek=true")

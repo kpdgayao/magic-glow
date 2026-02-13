@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
-import { Plus, Trash2, Loader2, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Loader2,
+  Lightbulb,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
+import { PLATFORMS, INCOME_TYPES, PLATFORM_COLORS, MONTHS } from "@/lib/constants";
 
 interface IncomeEntry {
   id: string;
@@ -18,41 +28,9 @@ interface IncomeEntry {
   note?: string;
 }
 
-const PLATFORMS = [
-  "TikTok",
-  "YouTube",
-  "Instagram",
-  "Facebook",
-  "GCash",
-  "Maya",
-  "Shopee",
-  "Lazada",
-  "Other",
-];
-
-const INCOME_TYPES = [
-  "Brand Deal",
-  "Affiliate",
-  "Commission",
-  "Ad Revenue",
-  "Tips/Gifts",
-  "Freelance",
-  "Other",
-];
-
-const PLATFORM_COLORS: Record<string, string> = {
-  TikTok: "bg-mg-pink",
-  YouTube: "bg-red-500",
-  Instagram: "bg-purple-500",
-  Facebook: "bg-blue-500",
-  GCash: "bg-mg-blue",
-  Maya: "bg-green-500",
-  Shopee: "bg-orange-500",
-  Lazada: "bg-mg-blue",
-  Other: "bg-muted-foreground",
-};
-
 export default function TrackerPage() {
+  const [month, setMonth] = useState(() => new Date().getMonth() + 1);
+  const [year, setYear] = useState(() => new Date().getFullYear());
   const [entries, setEntries] = useState<IncomeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -66,19 +44,38 @@ export default function TrackerPage() {
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [note, setNote] = useState("");
 
-  useEffect(() => {
-    fetchEntries();
-  }, []);
-
-  async function fetchEntries() {
+  const fetchEntries = useCallback(async () => {
+    setLoading(true);
     try {
-      const res = await fetch("/api/income");
+      const res = await fetch(`/api/income?month=${month}&year=${year}`);
       const data = await res.json();
-      setEntries(data);
+      setEntries(data.entries || []);
     } catch {
       toast.error("Failed to load income entries");
     } finally {
       setLoading(false);
+    }
+  }, [month, year]);
+
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
+
+  function prevMonth() {
+    if (month === 1) {
+      setMonth(12);
+      setYear((y) => y - 1);
+    } else {
+      setMonth((m) => m - 1);
+    }
+  }
+
+  function nextMonth() {
+    if (month === 12) {
+      setMonth(1);
+      setYear((y) => y + 1);
+    } else {
+      setMonth((m) => m + 1);
     }
   }
 
@@ -98,10 +95,9 @@ export default function TrackerPage() {
         }),
       });
       if (!res.ok) throw new Error();
-      const entry = await res.json();
-      setEntries((prev) => [entry, ...prev]);
+      toast.success("Income added! +10 XP");
       resetForm();
-      toast.success("Income added!");
+      fetchEntries();
     } catch {
       toast.error("Failed to add income");
     } finally {
@@ -147,7 +143,7 @@ export default function TrackerPage() {
   );
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-5 pb-28">
       <div className="pt-2">
         <h1 className="font-[family-name:var(--font-playfair)] text-2xl font-bold">
           Income Tracker
@@ -157,10 +153,23 @@ export default function TrackerPage() {
         </p>
       </div>
 
-      {/* Total */}
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between">
+        <button onClick={prevMonth} aria-label="Previous month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <p className="font-semibold">{MONTHS[month - 1]} {year}</p>
+        <button onClick={nextMonth} aria-label="Next month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Monthly Total */}
       <Card className="border-mg-teal/20 bg-mg-teal/5">
         <CardContent className="p-4 text-center">
-          <p className="text-sm text-muted-foreground">Total Earnings</p>
+          <p className="text-sm text-muted-foreground">
+            {MONTHS[month - 1]} Earnings
+          </p>
           <p className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-mg-teal">
             {formatCurrency(total)}
           </p>
@@ -188,7 +197,7 @@ export default function TrackerPage() {
                       PLATFORM_COLORS[platform] || "bg-muted-foreground"
                     )}
                     style={{
-                      width: `${(amt / total) * 100}%`,
+                      width: `${total > 0 ? (amt / total) * 100 : 0}%`,
                     }}
                   />
                 </div>
@@ -317,7 +326,7 @@ export default function TrackerPage() {
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          No income entries yet. Start tracking!
+          No income entries for {MONTHS[month - 1]}. Start tracking!
         </div>
       ) : (
         <div className="space-y-2">
@@ -350,7 +359,8 @@ export default function TrackerPage() {
                   <button
                     onClick={() => handleDelete(entry.id)}
                     disabled={deletingId === entry.id}
-                    className="text-muted-foreground hover:text-destructive p-1 transition-colors"
+                    aria-label={`Delete ${entry.source} entry`}
+                    className="text-muted-foreground hover:text-destructive p-2 -mr-1 transition-colors"
                   >
                     {deletingId === entry.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />

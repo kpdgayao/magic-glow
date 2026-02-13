@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { PWARegister } from "@/components/pwa-register";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -19,7 +20,13 @@ export const metadata: Metadata = {
   title: "MoneyGlow — Your Financial Glow-Up Starts Here",
   description:
     "Financial literacy app for young Filipino digital creators. Budget, save, grow, and track your creator income.",
-  icons: { icon: "/favicon.ico" },
+  icons: { icon: "/favicon.ico", apple: "/icons/icon-192.png" },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MoneyGlow",
+  },
 };
 
 export const viewport: Viewport = {
@@ -42,6 +49,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster richColors position="top-center" />
+        <PWARegister />
       </body>
     </html>
   );

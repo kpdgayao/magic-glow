@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0D0D0D"/>
+  <circle cx="256" cy="220" r="120" fill="none" stroke="#FF6B9D" stroke-width="24"/>
+  <path d="M256 100 L256 120" stroke="#FFB86C" stroke-width="16" stroke-linecap="round"/>
+  <path d="M256 320 L256 340" stroke="#FFB86C" stroke-width="16" stroke-linecap="round"/>
+  <path d="M136 220 L156 220" stroke="#FFB86C" stroke-width="16" stroke-linecap="round"/>
+  <path d="M356 220 L376 220" stroke="#FFB86C" stroke-width="16" stroke-linecap="round"/>
+  <text x="256" y="240" text-anchor="middle" font-family="serif" font-size="100" font-weight="bold" fill="#FF6B9D">M</text>
+  <text x="256" y="420" text-anchor="middle" font-family="sans-serif" font-size="56" font-weight="600" fill="#50E3C2">GLOW</text>
+</svg>

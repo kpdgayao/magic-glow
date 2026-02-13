@@ -9,38 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Loader2, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
-
-const INCOME_SOURCES = [
-  "TikTok",
-  "YouTube",
-  "Instagram",
-  "Facebook",
-  "GCash",
-  "Maya",
-  "Shopee",
-  "Lazada",
-  "Freelance",
-  "Allowance",
-  "Part-time Job",
-  "Other",
-];
-
-const INCOME_RANGES = [
-  { label: "₱1K–5K", value: 3000 },
-  { label: "₱5K–10K", value: 7500 },
-  { label: "₱10K–20K", value: 15000 },
-  { label: "₱20K–50K", value: 35000 },
-  { label: "₱50K–100K", value: 75000 },
-  { label: "₱100K+", value: 125000 },
-];
-
-const FINANCIAL_GOALS = [
-  { value: "SAVE_EMERGENCY_FUND", label: "Save Emergency Fund" },
-  { value: "PAY_OFF_DEBT", label: "Pay Off Debt" },
-  { value: "START_INVESTING", label: "Start Investing" },
-  { value: "BUDGET_BETTER", label: "Budget Better" },
-  { value: "GROW_CREATOR_INCOME", label: "Grow Creator Income" },
-];
+import { toast } from "sonner";
+import { INCOME_SOURCES, INCOME_RANGES, FINANCIAL_GOALS } from "@/lib/constants";
 
 const TOTAL_STEPS = 5;
 
@@ -102,7 +72,7 @@ export default function OnboardingPage() {
 
       router.push("/dashboard");
     } catch {
-      alert("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

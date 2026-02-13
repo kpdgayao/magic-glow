@@ -18,6 +18,7 @@ import {
   Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
+import { EXPENSE_SUBCATEGORIES, BUDGET_PRESETS, MONTHS } from "@/lib/constants";
 
 interface MonthlyBudget {
   id: string;
@@ -45,24 +46,11 @@ interface Expense {
   date: string;
 }
 
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
-
-const SUBCATEGORIES = {
-  NEEDS: ["Food", "Rent/Board", "Transport", "Load/WiFi", "Utilities", "School", "Health", "Other"],
-  WANTS: ["Shopping", "Eating Out", "Coffee/Milk Tea", "Streaming", "Gaming", "Barkada", "Online Shopping", "Other"],
-  SAVINGS: ["Emergency Fund", "GCash/Maya Savings", "Investments", "Pag-IBIG/SSS", "Other"],
-};
-
 const CATEGORY_CONFIG = {
   NEEDS: { label: "Needs (50%)", color: "bg-mg-pink", textColor: "text-mg-pink", dotColor: "bg-mg-pink" },
   WANTS: { label: "Wants (30%)", color: "bg-mg-amber", textColor: "text-mg-amber", dotColor: "bg-mg-amber" },
   SAVINGS: { label: "Savings (20%)", color: "bg-mg-teal", textColor: "text-mg-teal", dotColor: "bg-mg-teal" },
 };
-
-const INCOME_PRESETS = [5000, 10000, 20000, 50000, 100000];
 
 export default function BudgetPage() {
   const router = useRouter();
@@ -70,6 +58,7 @@ export default function BudgetPage() {
   const [year, setYear] = useState(() => new Date().getFullYear());
   const [budget, setBudget] = useState<MonthlyBudget | null>(null);
   const [spent, setSpent] = useState<Spent>({ needs: 0, wants: 0, savings: 0, total: 0 });
+  const [trackedIncome, setTrackedIncome] = useState(0);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSetup, setShowSetup] = useState(false);
@@ -98,10 +87,15 @@ export default function BudgetPage() {
 
       setBudget(budgetData.budget);
       setSpent(budgetData.spent || { needs: 0, wants: 0, savings: 0, total: 0 });
+      setTrackedIncome(budgetData.trackedIncome || 0);
       setExpenses(expensesData.expenses || []);
 
       if (!budgetData.budget) {
         setShowSetup(true);
+        // Auto-fill income input with tracked income if available
+        if (budgetData.trackedIncome > 0) {
+          setIncomeInput(String(budgetData.trackedIncome));
+        }
       } else {
         setShowSetup(false);
       }
@@ -238,11 +232,11 @@ export default function BudgetPage() {
 
       {/* Month Navigation */}
       <div className="flex items-center justify-between">
-        <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-card transition-colors">
+        <button onClick={prevMonth} aria-label="Previous month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
           <ChevronLeft className="h-5 w-5" />
         </button>
         <p className="font-semibold">{MONTHS[month - 1]} {year}</p>
-        <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-card transition-colors">
+        <button onClick={nextMonth} aria-label="Next month" className="p-2.5 rounded-lg hover:bg-card transition-colors">
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
@@ -272,8 +266,17 @@ export default function BudgetPage() {
                 />
               </div>
             </div>
+            {trackedIncome > 0 && (
+              <button
+                onClick={() => setIncomeInput(String(trackedIncome))}
+                className="w-full rounded-lg border border-mg-teal/30 bg-mg-teal/5 p-3 text-left transition-colors hover:border-mg-teal/50"
+              >
+                <p className="text-xs text-mg-teal font-medium">Use tracked income</p>
+                <p className="text-sm font-semibold">{formatCurrency(trackedIncome)} <span className="text-xs text-muted-foreground font-normal">earned this month</span></p>
+              </button>
+            )}
             <div className="flex flex-wrap gap-2">
-              {INCOME_PRESETS.map((p) => (
+              {BUDGET_PRESETS.map((p) => (
                 <button
                   key={p}
                   onClick={() => setIncomeInput(String(p))}
@@ -307,7 +310,8 @@ export default function BudgetPage() {
                     setIncomeInput(String(budget.income));
                     setShowSetup(true);
                   }}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Edit monthly budget"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1.5"
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
@@ -336,9 +340,14 @@ export default function BudgetPage() {
                   style={{ width: `${Math.min((spent.total / budget.income) * 100, 100)}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground text-right">
-                {formatCurrency(Math.max(budget.income - spent.total, 0))} remaining
-              </p>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{formatCurrency(Math.max(budget.income - spent.total, 0))} remaining</span>
+                {trackedIncome > 0 && (
+                  <span className="text-mg-teal">
+                    {formatCurrency(trackedIncome)} earned
+                  </span>
+                )}
+              </div>
             </CardContent>
           </Card>
 
@@ -426,7 +435,7 @@ export default function BudgetPage() {
                 <div className="space-y-1.5">
                   <Label className="text-xs">What for?</Label>
                   <div className="flex flex-wrap gap-2">
-                    {SUBCATEGORIES[expCategory].map((sub) => (
+                    {EXPENSE_SUBCATEGORIES[expCategory].map((sub) => (
                       <button
                         key={sub}
                         onClick={() => setExpSubcategory(sub)}
@@ -538,9 +547,10 @@ export default function BudgetPage() {
                       </span>
                       <button
                         onClick={() => handleDeleteExpense(exp.id)}
-                        className="text-muted-foreground hover:text-red-400 transition-colors p-1"
+                        aria-label={`Delete ${exp.subcategory} expense`}
+                        className="text-muted-foreground hover:text-red-400 transition-colors p-2 -mr-1"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>

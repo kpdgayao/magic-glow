@@ -4,17 +4,34 @@ import { prisma } from "@/lib/prisma";
 import { incomeEntrySchema } from "@/lib/validations";
 import { awardXP } from "@/lib/gamification";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await requireAuth();
+    const { searchParams } = req.nextUrl;
+
+    const monthParam = searchParams.get("month");
+    const yearParam = searchParams.get("year");
+
+    let where: Record<string, unknown> = { userId: session.userId };
+
+    if (monthParam && yearParam) {
+      const month = parseInt(monthParam);
+      const year = parseInt(yearParam);
+      const startDate = new Date(Date.UTC(year, month - 1, 1));
+      const endDate = new Date(Date.UTC(year, month, 1));
+      where = { ...where, date: { gte: startDate, lt: endDate } };
+    }
 
     const entries = await prisma.incomeEntry.findMany({
-      where: { userId: session.userId },
+      where,
       orderBy: { date: "desc" },
       take: 100,
     });
 
-    return NextResponse.json(entries);
+    // Calculate total for the query
+    const total = entries.reduce((sum, e) => sum + e.amount, 0);
+
+    return NextResponse.json({ entries, total });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

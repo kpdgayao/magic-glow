@@ -24,18 +24,29 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Get aggregated spent per category for this month
+    // Get aggregated spent per category and tracked income for this month
     const startDate = new Date(Date.UTC(year, month - 1, 1));
     const endDate = new Date(Date.UTC(year, month, 1));
 
-    const expenses = await prisma.expense.groupBy({
-      by: ["category"],
-      where: {
-        userId: session.userId,
-        date: { gte: startDate, lt: endDate },
-      },
-      _sum: { amount: true },
-    });
+    const [expenses, incomeAgg] = await Promise.all([
+      prisma.expense.groupBy({
+        by: ["category"],
+        where: {
+          userId: session.userId,
+          date: { gte: startDate, lt: endDate },
+        },
+        _sum: { amount: true },
+      }),
+      prisma.incomeEntry.aggregate({
+        where: {
+          userId: session.userId,
+          date: { gte: startDate, lt: endDate },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const trackedIncome = incomeAgg._sum.amount || 0;
 
     const spent = {
       needs: 0,
@@ -50,7 +61,7 @@ export async function GET(req: NextRequest) {
       spent.total += e._sum.amount || 0;
     }
 
-    return NextResponse.json({ budget, spent });
+    return NextResponse.json({ budget, spent, trackedIncome });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
