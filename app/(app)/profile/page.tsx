@@ -319,7 +319,7 @@ export default function ProfilePage() {
 
           <div className="space-y-2">
             <Label>Financial Goal</Label>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {FINANCIAL_GOALS.map((goal) => (
                 <button
                   key={goal.value}
@@ -339,7 +339,7 @@ export default function ProfilePage() {
 
           <div className="space-y-2">
             <Label>Employment Status</Label>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {EMPLOYMENT_STATUSES.map((status) => (
                 <button
                   key={status.value}

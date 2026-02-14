@@ -315,9 +315,9 @@ export default function BudgetPage() {
                     setShowSetup(true);
                   }}
                   aria-label="Edit monthly budget"
-                  className="text-muted-foreground hover:text-foreground transition-colors p-1.5"
+                  className="text-muted-foreground hover:text-foreground transition-colors p-2.5 -mr-1 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
-                  <Pencil className="h-3.5 w-3.5" />
+                  <Pencil className="h-4 w-4" />
                 </button>
               </div>
               <div className="flex items-baseline justify-between">
@@ -423,7 +423,7 @@ export default function BudgetPage() {
                           setExpSubcategory("");
                         }}
                         className={cn(
-                          "rounded-full px-3 py-1.5 text-xs font-medium border transition-colors",
+                          "rounded-full px-4 py-2 text-xs font-medium border transition-colors",
                           expCategory === cat
                             ? `${CATEGORY_CONFIG[cat].color} text-white border-transparent`
                             : "border-border bg-background hover:border-muted-foreground"
@@ -444,7 +444,7 @@ export default function BudgetPage() {
                         key={sub}
                         onClick={() => setExpSubcategory(sub)}
                         className={cn(
-                          "rounded-full px-3 py-1.5 text-xs font-medium border transition-colors",
+                          "rounded-full px-4 py-2 text-xs font-medium border transition-colors",
                           expSubcategory === sub
                             ? "bg-foreground text-background border-transparent"
                             : "border-border bg-background hover:border-muted-foreground"

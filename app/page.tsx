@@ -118,7 +118,7 @@ export default async function Home() {
         <h2 className="text-2xl font-bold font-serif text-center mb-10">
           Everything you need to manage your creator money
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {FEATURES.map((f) => (
             <div
               key={f.title}
@@ -126,7 +126,7 @@ export default async function Home() {
             >
               <span className="text-3xl">{f.emoji}</span>
               <h3 className="mt-3 text-lg font-semibold">{f.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -134,7 +134,7 @@ export default async function Home() {
 
       {/* Blog Preview */}
       <section className="mx-auto max-w-5xl px-4 py-16">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-10">
           <h2 className="text-2xl font-bold font-serif">From the Blog</h2>
           <Link
             href="/blog"
@@ -143,12 +143,12 @@ export default async function Home() {
             View all posts
           </Link>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {posts.map((post) => (
             <Link
               key={post.slug}
               href={`/blog/${post.slug}`}
-              className="group rounded-xl border border-border bg-card p-5 transition-colors hover:border-mg-pink/50"
+              className="group rounded-xl border border-border bg-card p-6 transition-colors hover:border-mg-pink/50"
             >
               <div className="flex items-start gap-3">
                 <span className="text-2xl shrink-0">{post.coverEmoji}</span>
@@ -156,7 +156,7 @@ export default async function Home() {
                   <h3 className="font-semibold text-foreground group-hover:text-mg-pink transition-colors line-clamp-2">
                     {post.title}
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                  <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
                     {post.excerpt}
                   </p>
                   <time

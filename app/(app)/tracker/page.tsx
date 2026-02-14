@@ -332,10 +332,10 @@ export default function TrackerPage() {
           No income entries for {MONTHS[month - 1]}. Start tracking!
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {entries.map((entry) => (
             <Card key={entry.id} className="border-border bg-card">
-              <CardContent className="p-3 flex items-center justify-between">
+              <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
                   <div
                     className={cn(

@@ -320,7 +320,7 @@ export default function AdvicePage() {
           {blogPosts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`}>
               <Card className="border-border bg-card hover:border-muted-foreground/30 transition-colors cursor-pointer">
-                <CardContent className="p-3 flex items-center gap-3">
+                <CardContent className="p-4 flex items-center gap-3">
                   <span className="text-xl shrink-0">{post.coverEmoji}</span>
                   <p className="text-sm font-medium line-clamp-1">
                     {post.title}

@@ -188,7 +188,7 @@ function ChatContent() {
             </div>
 
             {/* Suggested Prompts */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               {SUGGESTED_PROMPTS.map((prompt) => (
                 <button
                   key={prompt}

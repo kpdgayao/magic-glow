@@ -234,7 +234,7 @@ export default function InsightsPage() {
                     : "border-destructive/20 bg-destructive/5"
                 }
               >
-                <CardContent className="p-3 flex items-center justify-between">
+                <CardContent className="p-4 flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">
                     {currentMonth.label} net
                   </span>
@@ -388,7 +388,7 @@ export default function InsightsPage() {
               <Info className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm font-medium">PH Reference Rates</p>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {REFERENCE_RATES.map((r) => (
                 <div
                   key={r.name}
@@ -450,7 +450,7 @@ export default function InsightsPage() {
                 max={5_000_000}
                 step={10_000}
               />
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-2">
                 {TAX_PRESETS.map((p) => (
                   <button
                     key={p}
@@ -479,7 +479,7 @@ export default function InsightsPage() {
                 : "border-border bg-card"
             }
           >
-            <CardContent className="p-3 space-y-1">
+            <CardContent className="p-4 space-y-1.5">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium">8% Flat</p>
                 {recommended === "flat8" && (
@@ -519,7 +519,7 @@ export default function InsightsPage() {
                 : "border-border bg-card"
             }
           >
-            <CardContent className="p-3 space-y-1">
+            <CardContent className="p-4 space-y-1.5">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-medium">Graduated + OSD</p>
                 {recommended === "graduated" && (
@@ -553,7 +553,7 @@ export default function InsightsPage() {
                 : "border-mg-blue/20 bg-mg-blue/5"
             }
           >
-            <CardContent className="p-3 text-center">
+            <CardContent className="p-4 text-center">
               <p className="text-xs text-muted-foreground">
                 {recommended === "flat8"
                   ? `8% flat saves you ${formatCurrency(graduated.total - flat8Tax)}/year vs graduated`

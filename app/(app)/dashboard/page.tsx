@@ -146,10 +146,10 @@ export default function DashboardPage() {
 
       {/* Glow Score + Streak */}
       {stats && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4">
           <Link href="/advice">
             <Card className="border-mg-amber/20 bg-mg-amber/5 hover:border-mg-amber/40 transition-colors cursor-pointer h-full">
-              <CardContent className="p-3 text-center">
+              <CardContent className="p-4 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Glow Score</p>
                 <p className="text-2xl">{stats.glowEmoji}</p>
                 <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-amber">
@@ -161,7 +161,7 @@ export default function DashboardPage() {
           </Link>
           <Link href="/advice">
             <Card className="border-mg-pink/20 bg-mg-pink/5 hover:border-mg-pink/40 transition-colors cursor-pointer h-full">
-              <CardContent className="p-3 text-center">
+              <CardContent className="p-4 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Daily Streak</p>
                 <Flame className="h-6 w-6 text-mg-pink mx-auto" />
                 <p className="font-[family-name:var(--font-playfair)] text-xl font-bold text-mg-pink">
@@ -192,7 +192,7 @@ export default function DashboardPage() {
       )}
 
       {/* Feature Cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         {FEATURES.map((f) => (
           <Link key={f.href} href={f.href}>
             <Card className="border-border bg-card hover:border-muted-foreground/30 transition-colors cursor-pointer h-full">
@@ -264,13 +264,13 @@ export default function DashboardPage() {
           {blogPosts.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`}>
               <Card className="border-border bg-card hover:border-muted-foreground/30 transition-colors cursor-pointer">
-                <CardContent className="p-3 flex items-start gap-3">
+                <CardContent className="p-4 flex items-start gap-3">
                   <span className="text-xl shrink-0">{post.coverEmoji}</span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium line-clamp-1">
                       {post.title}
                     </p>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
                       {post.excerpt}
                     </p>
                   </div>
