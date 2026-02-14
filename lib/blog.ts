@@ -45,5 +45,7 @@ export function getAllPosts(): BlogPost[] {
 }
 
 export function renderMarkdown(content: string): string {
-  return marked.parse(content, { async: false }) as string;
+  // Strip leading h1 — the page template already renders the title from frontmatter
+  const stripped = content.replace(/^# .+\n+/, "");
+  return marked.parse(stripped, { async: false }) as string;
 }
